@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+  <meta name="description" content="Catalogue interactif de patterns frontend : SPA, BFF REST, GraphQL, SSR, Jamstack et serverless. Schémas, critères d'arbitrage et export ADR.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <title>Frontend Architecture Patterns · Architecture Solutions</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--surface:#151c2c;--surface2:#1b2537;--ink:#eef3ff;--muted:#aab7cb;--line:#303c52;--cyan:#6ee7e3;--violet:#a9a1ff;--warm:#f7cd85;--green:#9ce0b5;--r:18px;--font:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.58 var(--font)}button,input,select{font:inherit}button{cursor:pointer}a{color:var(--cyan)}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+[hidden]{display:none!important}.wrap{width:min(1240px,calc(100% - 48px));margin:auto}.topbar{border-bottom:1px solid var(--line);background:#0b1020eF;position:sticky;top:0;z-index:10;backdrop-filter:blur(20px)}
+.topbar-inner{display:flex;align-items:center;gap:22px;min-height:70px}.mark{width:34px;height:34px;display:grid;place-items:center;font-size:19px;border-radius:10px;background:linear-gradient(135deg,#284a71,#34306a);color:#fff}.brand{display:flex;gap:12px;align-items:center;text-decoration:none;color:var(--ink);font-weight:750;letter-spacing:-.025em}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:.17em;text-transform:uppercase;font-weight:650}.top-links{margin-left:auto;display:flex;gap:18px;align-items:center}.top-links a{color:var(--muted);font-size:13px;text-decoration:none}.top-links a:hover{color:var(--ink)}
+.eyebrow{text-transform:uppercase;letter-spacing:.18em;color:var(--cyan);font-size:11px;font-weight:800}.hero{padding:76px 0 54px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 81% 12%,#273054 0,transparent 44%),radial-gradient(ellipse at 11% 80%,#112f3e 0,transparent 42%)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(320px,.85fr);align-items:center;gap:42px}.hero h1{font-size:clamp(36px,5.1vw,70px);letter-spacing:-.057em;line-height:1.06;margin:14px 0 20px;font-weight:780}.hero h1 em{font-style:normal;color:var(--cyan)}.hero p{max-width:660px;font-size:17px;color:var(--muted);margin:0}.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.btn{border:1px solid var(--line);border-radius:11px;padding:11px 16px;display:inline-flex;align-items:center;gap:9px;text-decoration:none;color:var(--ink);background:#19263a;font-weight:650;font-size:13px}.btn:hover{border-color:#7283a1;background:#223047}.btn.primary{background:var(--cyan);color:#0b1824;border-color:var(--cyan)}.btn.primary:hover{background:#a5f4ef}.btn.small{font-size:12px;padding:7px 10px}.btn[disabled]{opacity:.45;cursor:not-allowed}
+.hero-panel{border:1px solid #3c5068;border-radius:22px;padding:22px;background:linear-gradient(150deg,#1c2b42e6,#111a2be8);box-shadow:0 22px 70px #0004}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.panel-head strong{font-size:16px}.panel-head span{font-size:11px;color:var(--cyan);border:1px solid #327e88;padding:3px 8px;border-radius:20px}.select-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:17px 0}.field{display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:12px}.field:last-child{grid-column:1/-1}.field select,.search{border:1px solid #485770;background:#101b2c;color:var(--ink);border-radius:10px;padding:10px 12px;width:100%;min-width:0}.suggest{border-top:1px solid var(--line);padding-top:15px}.suggest .note{color:var(--muted);font-size:12px;display:block;margin:6px 0 12px}.suggest strong{font-size:15px;color:var(--green)}
+.quick-facts{display:flex;gap:28px;flex-wrap:wrap;margin-top:34px}.quick-facts strong{font-size:24px;letter-spacing:-.05em}.quick-facts span{display:block;text-transform:uppercase;font-size:10px;letter-spacing:.11em;color:var(--muted)}
+main{padding-bottom:64px}.intro{padding:50px 0 22px;display:flex;gap:20px;align-items:end;justify-content:space-between}.intro h2{font-size:32px;letter-spacing:-.04em;margin:6px 0}.intro p{max-width:650px;margin:0;color:var(--muted)}.counter{font-size:13px;color:var(--muted)}
+.filters{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-bottom:22px}.search{min-width:220px;flex:1;max-width:400px;padding:12px 15px}.chip{background:#172135;color:var(--muted);border:1px solid var(--line);border-radius:30px;padding:9px 14px;font-size:12px;font-weight:700}.chip:hover,.chip[aria-pressed=true]{background:#183b48;color:var(--cyan);border-color:#3c8d96}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}.pattern{min-width:0;border:1px solid var(--line);border-radius:var(--r);background:linear-gradient(160deg,#182338,#101827);padding:22px;display:flex;flex-direction:column;transition:transform .18s,border-color .18s}.pattern:hover{transform:translateY(-3px);border-color:#59708d}.pattern .meta{display:flex;justify-content:space-between;gap:12px;align-items:center}.micro{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);font-weight:800}.tag{font-size:10px;border:1px solid #445169;color:#c6d0dd;border-radius:6px;padding:3px 7px;white-space:nowrap}.pattern h3{font-size:20px;line-height:1.2;letter-spacing:-.035em;margin:18px 0 9px}.pattern .summary{color:var(--muted);font-size:13px;min-height:62px;margin:0}.chain{display:flex;align-items:stretch;gap:5px;margin:23px 0;overflow-x:auto;padding:4px 0 8px}.node{background:#202f46;border:1px solid #455c78;border-radius:8px;padding:10px 7px;min-width:0;flex:1;display:grid;place-items:center;text-align:center;font-size:10px;font-weight:700;line-height:1.2}.node small{display:block;color:var(--muted);font-size:9px;font-weight:450;margin-top:4px}.node.bff{border-color:#62bcb8;color:#abf9f1}.node.client{border-color:#8278ce;color:#dad3ff}.node.service{border-color:#b39054;color:#ffe4b2}.arr{align-self:center;color:var(--cyan);font-size:15px}.pattern .bottom{display:flex;justify-content:space-between;align-items:center;margin-top:auto;gap:10px;border-top:1px solid var(--line);padding-top:14px}.pattern .detail{border:0;background:none;color:var(--cyan);font-size:12px;font-weight:700;padding:5px}.compare-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer}.compare-toggle input{accent-color:var(--cyan);width:16px;height:16px}.hint{font-size:12px;color:var(--muted)}.empty{padding:45px;text-align:center;border:1px dashed var(--line);border-radius:var(--r)}
+.comparison{margin-top:42px;border:1px solid #40506d;background:linear-gradient(140deg,#16263c,#101927);border-radius:20px;padding:24px}.comparison h2{margin:0 0 8px;font-size:24px;letter-spacing:-.04em}.comparison p{color:var(--muted);margin:0 0 18px}.table-scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;vertical-align:top;padding:12px;border-bottom:1px solid var(--line);min-width:180px}th:first-child,td:first-child{min-width:136px;width:136px;color:var(--muted)}th{color:var(--cyan)}.compare-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
+.guidance{margin:52px 0 0}.guidance h2{font-size:29px;letter-spacing:-.04em;margin:5px 0 18px}.guide-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.guide{border:1px solid var(--line);background:#111a2a;border-radius:var(--r);padding:20px}.guide h3{margin:0 0 8px;font-size:17px}.guide p{margin:0;color:var(--muted);font-size:13px}.guide .stripe{height:3px;width:40px;background:var(--cyan);margin-bottom:16px;border-radius:5px}.guide:nth-child(2) .stripe{background:var(--violet)}.guide:nth-child(3) .stripe{background:var(--warm)}
+.references{margin:45px 0 0;padding-top:24px;border-top:1px solid var(--line)}.references h2{font-size:19px}.references ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:12px}.references a{font-size:12px;color:var(--muted)}footer{border-top:1px solid var(--line);color:var(--muted);font-size:12px;padding:20px 0 30px}.footer-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+dialog{padding:0;border:1px solid #536781;border-radius:20px;background:#111a2b;color:var(--ink);max-height:min(92vh,1000px);width:min(860px,calc(100% - 24px));box-shadow:0 35px 120px #000b}dialog::backdrop{background:#050a15c9;backdrop-filter:blur(5px)}.dialog-body{padding:30px}.dialog-head{display:flex;justify-content:space-between;gap:20px;align-items:start}.dialog-head h2{font-size:31px;line-height:1.16;letter-spacing:-.05em;margin:8px 0 10px}.close{border:1px solid var(--line);background:#203047;color:var(--ink);border-radius:9px;padding:7px 12px}.diagram-full{display:flex;align-items:stretch;gap:9px;overflow-x:auto;margin:24px 0;padding:18px 10px;border:1px solid var(--line);border-radius:12px;background:#0b1423}.diagram-full .node{min-width:125px;font-size:12px;padding:14px 12px}.diagram-full .arr{font-size:23px}.facts{display:flex;gap:9px;flex-wrap:wrap;margin:13px 0 18px}.facts span{color:#bfcce0;border:1px solid var(--line);padding:5px 9px;border-radius:7px;font-size:11px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:22px}.cols h3,.dialog-body h3{font-size:14px;letter-spacing:.02em;margin:18px 0 8px}.cols ul{margin:0;padding-left:18px;color:var(--muted);font-size:13px}.cols li{margin-bottom:8px}.detail-text{font-size:14px;color:var(--muted);margin:0}.warning{border-left:3px solid var(--warm);background:#292519;color:#eee1c9;padding:13px 15px;border-radius:6px;font-size:13px;margin-top:19px}.dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}.source-links{font-size:12px;display:flex;flex-wrap:wrap;gap:13px}
+#notice{position:fixed;z-index:40;bottom:20px;right:20px;background:#254536;border:1px solid #6cd0a6;color:white;padding:11px 17px;border-radius:9px;box-shadow:0 12px 35px #0007}
+@media(max-width:1000px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.hero-grid{grid-template-columns:1fr}.hero-panel{max-width:700px}.hero{padding-top:48px}.guide-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:670px){.wrap{width:min(100% - 28px,1240px)}.topbar-inner{min-height:62px}.top-links a:nth-child(2){display:none}.hero{padding:36px 0 30px}.hero p{font-size:15px}.hero h1{font-size:39px}.quick-facts{gap:20px}.cards,.guide-grid,.cols{grid-template-columns:1fr}.intro{align-items:start;flex-direction:column;padding-top:35px}.intro h2{font-size:27px}.filters{gap:7px}.search{max-width:none;flex-basis:100%}.pattern .summary{min-height:unset}.dialog-body{padding:20px}.dialog-head h2{font-size:26px}.diagram-full .node{min-width:115px}.brand{font-size:13px}.top-links{gap:8px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="wrap topbar-inner">
+  <a class="brand" href="./index.html" aria-label="Accueil du catalogue"><span class="mark" aria-hidden="true">⌘</span><span><small>Architecture Solutions</small>Front Pattern Catalog</span></a>
+  <nav class="top-links" aria-label="Navigation"><a href="#catalogue">Catalogue</a><a href="#repères">Repères</a><a href="https://sims07.github.io/tools-portal/">← Portail des outils</a></nav>
+</div></header>
+<section class="hero"><div class="wrap hero-grid">
+ <div><span class="eyebrow">Référentiel d'architecture · Frontend & BFF</span>
+  <h1>Le bon front.<br><em>La bonne frontière.</em></h1>
+  <p>Du navigateur directement connecté aux APIs au BFF REST ou GraphQL, jusqu'aux fonctions serverless. Explore les options, visualise les flux et documente tes arbitrages d'architecture.</p>
+  <div class="hero-actions"><a class="btn primary" href="#catalogue">Explorer les patterns ↓</a><a class="btn" href="#repères">Comprendre les choix</a></div>
+  <div class="quick-facts"><div><strong id="totalCount">10</strong><span>Patterns de départ</span></div><div><strong>5</strong><span>Axes de lecture</span></div><div><strong>ADR</strong><span>Export Markdown</span></div></div>
+ </div>
+ <aside class="hero-panel" aria-label="Assistant d'orientation">
+  <div class="panel-head"><strong>Quel pattern envisager ?</strong><span>Guide indicatif</span></div>
+  <div class="select-grid">
+   <label class="field">Composition de plusieurs APIs ?
+    <select id="aggregation"><option value="no">Faible / non</option><option value="yes">Oui, plusieurs sources</option></select></label>
+   <label class="field">Jetons OAuth hors du navigateur ?
+    <select id="secure"><option value="yes">Oui, souhaité</option><option value="no">Non, client public possible</option></select></label>
+   <label class="field">Priorité de déploiement ?
+    <select id="deployment"><option value="standard">Classique (CDN + runtime si nécessaire)</option><option value="serverless">Serverless / à l'usage</option><option value="seo">Rendu initial / contenu indexable</option></select></label>
+  </div>
+  <div class="suggest" aria-live="polite"><span class="eyebrow">Piste à explorer</span><div><strong id="suggestTitle">SPA + BFF REST</strong></div><span class="note" id="suggestReason">Point de départ pour une session serveur.</span><button class="btn small" id="suggestOpen" type="button">Voir la fiche →</button></div>
+ </aside>
+</div></section>
+<main class="wrap">
+<section id="catalogue" aria-labelledby="catalogTitle">
+ <div class="intro"><div><span class="eyebrow">01 / Patterns applicatifs</span><h2 id="catalogTitle">Explorer les architectures</h2><p>Chaque carte représente une combinaison concrète. Les filtres ne constituent pas un classement : la qualité d'un pattern dépend du contexte produit et de l'organisation.</p></div><span class="counter" id="resultCount" aria-live="polite"></span></div>
+ <div class="filters" role="group" aria-label="Filtrer les patterns">
+  <input class="search" id="search" type="search" placeholder="Rechercher : REST, GraphQL, OAuth, SSR…" aria-label="Rechercher des patterns">
+  <button class="chip" type="button" data-filter="all" aria-pressed="true">Tous</button>
+  <button class="chip" type="button" data-filter="direct" aria-pressed="false">Sans BFF</button>
+  <button class="chip" type="button" data-filter="bff-rest" aria-pressed="false">BFF REST</button>
+  <button class="chip" type="button" data-filter="bff-graphql" aria-pressed="false">BFF GraphQL</button>
+  <button class="chip" type="button" data-filter="serverless" aria-pressed="false">Serverless</button>
+  <button class="chip" type="button" data-filter="rendering" aria-pressed="false">SSR / SSG</button>
+ </div>
+ <div class="cards" id="cards" aria-live="polite"></div>
+ <p id="empty" class="empty" hidden>Aucun résultat. Modifiez le filtre ou la recherche.</p>
+</section>
+<section class="comparison" id="comparison" hidden aria-labelledby="comparisonTitle">
+ <h2 id="comparisonTitle">Comparer les options</h2><p>Deux ou trois patterns côte à côte, pour structurer un arbitrage et copier une ébauche d'ADR.</p>
+ <div class="table-scroll"><table id="comparisonTable"></table></div>
+ <div class="compare-actions"><button class="btn small" type="button" id="clearCompare">Effacer</button><button class="btn primary small" type="button" id="copyCompare">Copier un ADR Markdown</button></div>
+</section>
+<section class="guidance" id="repères" aria-labelledby="guideTitle">
+ <span class="eyebrow">02 / Principes de décision</span><h2 id="guideTitle">Trois distinctions essentielles</h2>
+ <div class="guide-grid">
+  <article class="guide"><div class="stripe"></div><h3>BFF ≠ API Gateway</h3><p>Un BFF porte un contrat adapté à une expérience et souvent la session OAuth. Une gateway est un point d'entrée transversal : elle peut coexister avec le BFF sans le remplacer.</p></article>
+  <article class="guide"><div class="stripe"></div><h3>GraphQL ≠ BFF obligatoire</h3><p>Une API GraphQL peut être directement mutualisée, ou constituer un BFF dédié. Le choix du protocole et celui de la frontière applicative sont indépendants.</p></article>
+  <article class="guide"><div class="stripe"></div><h3>Serverless ≠ sans backend</h3><p>Le CDN peut servir la SPA, tandis que des fonctions exécutent le BFF REST ou GraphQL. « Serverless » décrit avant tout un modèle d'exécution et d'exploitation.</p></article>
+ </div>
+</section>
+<section class="references" aria-labelledby="sourcesTitle"><h2 id="sourcesTitle">Références utilisées</h2><ul id="referencesList"></ul><p class="hint">Fiches pédagogiques synthétiques : elles ne remplacent pas une étude de charge, de sécurité et d'exploitation pour chaque produit.</p></section>
+</main>
+<footer><div class="wrap footer-row"><span>Front Pattern Catalog · Architecture Solutions · Static PWA</span><span>Données versionnées dans patterns.json · Rien n'est envoyé à un serveur par ce catalogue</span></div></footer>
+<dialog id="detail" aria-label="Fiche de pattern"><div class="dialog-body" id="detailContent"></div></dialog>
+<div id="notice" role="status" aria-live="polite" hidden></div>
+<script>
+(function(){
+"use strict";
+var patterns=[], refs={}, selected=new Set(), filter="all", search="";
+var cards=document.getElementById("cards"), dialog=document.getElementById("detail"), details=document.getElementById("detailContent");
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]});}
+function notify(message){var n=document.getElementById("notice");n.textContent=message;n.hidden=false;clearTimeout(notify.timer);notify.timer=setTimeout(function(){n.hidden=true},3000);}
+function kind(label){if(label==="bff")return "bff";if(label==="client")return "client";if(label==="service")return "service";return "";}
+function chain(p,full){var nodes=full?p.diagram:p.diagram.slice(0,3);return '<div class="'+(full?'diagram-full':'chain')+'" aria-label="Flux : '+esc(p.diagram.map(function(n){return n[0]}).join(" vers "))+'">'+nodes.map(function(n,i){return (i?'<span class="arr" aria-hidden="true">→</span>':'')+'<div class="node '+kind(n[2])+'"><span>'+esc(n[0])+'<small>'+esc(n[1])+'</small></span></div>'}).join("")+(full||p.diagram.length<=3?'':'<span class="arr" title="Flux simplifié" aria-hidden="true">…</span>')+'</div>';}
+function list(items){return "<ul>"+items.map(function(s){return "<li>"+esc(s)+"</li>"}).join("")+"</ul>";}
+function find(id){return patterns.find(function(p){return p.id===id});}
+function render(){
+ var matches=patterns.filter(function(p){return (filter==="all"||p.tags.includes(filter))&&(!search||[p.title,p.subtitle,p.summary,p.when,p.rendering,p.hosting,p.auth,p.security].join(" ").toLocaleLowerCase("fr").includes(search));});
+ document.getElementById("resultCount").textContent=matches.length+" / "+patterns.length+" patterns";
+ document.getElementById("empty").hidden=matches.length>0;
+ cards.innerHTML=matches.map(function(p){var checked=selected.has(p.id);return '<article class="pattern" id="pattern-'+esc(p.id)+'"><div class="meta"><span class="micro">'+esc(p.subtitle)+'</span><span class="tag">'+esc(p.rendering)+'</span></div><h3>'+esc(p.title)+'</h3><p class="summary">'+esc(p.summary)+'</p>'+chain(p,false)+'<div class="bottom"><button type="button" class="detail" data-open="'+esc(p.id)+'">Voir le pattern →</button><label class="compare-toggle"><input type="checkbox" data-compare="'+esc(p.id)+'" '+(checked?'checked':'')+' aria-label="Comparer '+esc(p.title)+'">Comparer</label></div></article>'}).join("");
+ renderCompare();
+}
+function openDetail(id){
+ var p=find(id);if(!p)return;
+ var links=p.refs.map(function(key){return refs[key]}).filter(Boolean).map(function(r){return '<a href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer">'+esc(r.title)+'</a>'}).join("");
+ details.innerHTML='<div class="dialog-head"><div><span class="eyebrow">Fiche de référence / '+esc(p.subtitle)+'</span><h2>'+esc(p.title)+'</h2><p class="detail-text">'+esc(p.summary)+'</p></div><button type="button" class="close" data-close>Fermer ✕</button></div><div class="facts"><span>Rendu : '+esc(p.rendering)+'</span><span>Hébergement : '+esc(p.hosting)+'</span><span>Complexité : '+esc(p.complexity)+'</span></div>'+chain(p,true)+'<h3>Problème et intention</h3><p class="detail-text">'+esc(p.problem)+'</p><h3>Quand l&#39;envisager ?</h3><p class="detail-text">'+esc(p.when)+'</p><div class="cols"><div><h3>Atouts</h3>'+list(p.benefits)+'</div><div><h3>Compromis</h3>'+list(p.tradeoffs)+'</div></div><div class="warning"><strong>Sécurité et identité.</strong> '+esc(p.security)+'</div><h3>Exploitation & observabilité</h3><p class="detail-text">'+esc(p.operations)+'</p><h3>Références</h3><div class="source-links">'+links+'</div><div class="dialog-actions"><button type="button" class="btn" data-copy="'+esc(p.id)+'">Copier la fiche Markdown</button><button type="button" class="btn primary" data-toggle="'+esc(p.id)+'">'+(selected.has(p.id)?'Retirer de la comparaison':'Ajouter à la comparaison')+'</button></div>';
+ dialog.showModal();
+}
+function toggle(id,enabled){
+ if(!find(id))return;
+ if(enabled&&selected.size>=3&&!selected.has(id)){notify("Maximum 3 patterns à comparer.");render();return}
+ if(enabled)selected.add(id);else selected.delete(id);
+ render();
+ if(dialog.open&&details.querySelector('[data-toggle]'))details.querySelector('[data-toggle]').textContent=selected.has(id)?'Retirer de la comparaison':'Ajouter à la comparaison';
+}
+function md(p){return "# "+p.title+"\n\n"+p.summary+"\n\n## Contexte\n"+p.problem+"\n\n## À privilégier si\n"+p.when+"\n\n## Architecture\n"+p.diagram.map(function(n){return n[0]}).join(" → ")+"\n\n## Bénéfices\n"+p.benefits.map(function(v){return "- "+v}).join("\n")+"\n\n## Compromis\n"+p.tradeoffs.map(function(v){return "- "+v}).join("\n")+"\n\n## Sécurité\n"+p.security+"\n\n## Observabilité\n"+p.operations+"\n";}
+function renderCompare(){
+ var ids=Array.from(selected), sec=document.getElementById("comparison");sec.hidden=ids.length<2;if(ids.length<2)return;
+ var chosen=ids.map(find), rows=[["Rendu","rendering"],["Hébergement","hosting"],["Complexité","complexity"],["Identité","auth"],["À privilégier si","when"],["Sécurité","security"],["Exploitation","operations"]];
+ document.getElementById("comparisonTable").innerHTML='<thead><tr><th scope="col">Critère</th>'+chosen.map(function(p){return '<th scope="col">'+esc(p.title)+'</th>'}).join("")+'</tr></thead><tbody>'+rows.map(function(r){return '<tr><th scope="row">'+esc(r[0])+'</th>'+chosen.map(function(p){return '<td>'+esc(p[r[1]])+'</td>'}).join("")+'</tr>'}).join("")+'</tbody>';
+}
+async function copy(value){
+ try{await navigator.clipboard.writeText(value);notify("Markdown copié.");return}catch(e){}
+ var area=document.createElement("textarea");area.value=value;area.style.position="fixed";area.style.opacity="0";document.body.appendChild(area);area.select();var ok=false;try{ok=document.execCommand("copy")}catch(e){}area.remove();notify(ok?"Markdown copié.":"Copie indisponible : utilisez un navigateur HTTPS.");
+}
+function orient(){
+ var agg=document.getElementById("aggregation").value==="yes";
+ var sec=document.getElementById("secure").value==="yes";
+ var dep=document.getElementById("deployment").value;
+ var id=dep==="seo"?"ssr-bff":dep==="serverless"?(agg||sec?"serverless-bff-rest":"ssg-direct"):(agg||sec?"bff-rest":"spa-rest-direct");
+ var p=find(id);if(!p)return;
+ document.getElementById("suggestTitle").textContent=p.title;
+ document.getElementById("suggestReason").textContent=dep==="seo"?"Le rendu initial motive cette piste ; à confirmer selon personnalisation et trafic.":dep==="serverless"?"L'hébergement à l'usage ne tranche pas seul la nécessité d'un BFF.":sec?"Une session serveur évite d'exposer les jetons OAuth au code JavaScript.":agg?"La composition de sources justifie d'étudier une couche dédiée.":"Un front direct peut suffire si les APIs sont déjà adaptées.";
+ document.getElementById("suggestOpen").dataset.open=id;
+}
+cards.addEventListener("click",function(e){var b=e.target.closest("[data-open]");if(b)openDetail(b.dataset.open)});
+cards.addEventListener("change",function(e){if(e.target.matches("[data-compare]"))toggle(e.target.dataset.compare,e.target.checked)});
+document.querySelectorAll("[data-filter]").forEach(function(b){b.addEventListener("click",function(){filter=b.dataset.filter;document.querySelectorAll("[data-filter]").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});render()})});
+document.getElementById("search").addEventListener("input",function(e){search=e.target.value.trim().toLocaleLowerCase("fr");render()});
+document.getElementById("suggestOpen").addEventListener("click",function(e){openDetail(e.currentTarget.dataset.open)});
+["aggregation","secure","deployment"].forEach(function(k){document.getElementById(k).addEventListener("change",orient)});
+details.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;if(b.hasAttribute("data-close"))dialog.close();if(b.dataset.copy)copy(md(find(b.dataset.copy)));if(b.dataset.toggle){var id=b.dataset.toggle;toggle(id,!selected.has(id));}});
+dialog.addEventListener("click",function(e){if(e.target===dialog)dialog.close()});
+document.getElementById("clearCompare").addEventListener("click",function(){selected.clear();render()});
+document.getElementById("copyCompare").addEventListener("click",function(){var ps=Array.from(selected).map(find);if(ps.length<2)return;var lines=["# ADR — Comparaison de patterns frontend","","## Statut","Proposé / à arbitrer","","## Options étudiées"];ps.forEach(function(p){lines.push("### "+p.title,"**À privilégier si :** "+p.when,"**Compromis :** "+p.tradeoffs.join(" ; "),"**Sécurité :** "+p.security,"")});lines.push("## Décision","[À compléter selon contexte, risques, coûts et responsabilités.]","","## Conséquences","[À documenter.]");copy(lines.join("\n"))});
+fetch("./patterns.json",{cache:"no-store"}).then(function(res){if(!res.ok)throw Error("HTTP "+res.status);return res.json()}).then(function(data){
+ if(!data||!Array.isArray(data.patterns))throw Error("Format du catalogue invalide");
+ patterns=data.patterns;refs=Object.fromEntries(data.sources.map(function(r){return [r.id,r]}));
+ document.getElementById("totalCount").textContent=patterns.length;
+ document.getElementById("referencesList").innerHTML=data.sources.map(function(r){return '<li><a href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer">'+esc(r.title)+' ↗</a></li>'}).join("");
+ render();orient();
+}).catch(function(err){cards.innerHTML='<p class="empty">Le catalogue est indisponible. Vérifiez le chargement de patterns.json ou réessayez en ligne.</p>';document.getElementById("resultCount").textContent="Chargement impossible";console.error(err)});
+if("serviceWorker" in navigator&&location.protocol!=="file:"){window.addEventListener("load",function(){navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(function(e){console.warn("PWA non activée",e)})})}
+})();
+</script>
+</body>
+</html>
