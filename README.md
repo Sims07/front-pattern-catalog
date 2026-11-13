@@ -1,4 +1,4 @@
-# Frontend Pattern Catalog
+# Front Pattern Catalog
 
 Catalogue d'architecture à destination des architectes solutions : **10 combinaisons frontend, BFF, rendu et hébergement** avec des schémas, critères d'arbitrage, fiches de sécurité et export Markdown de fiches/ADR.
 
@@ -8,29 +8,26 @@ Catalogue d'architecture à destination des architectes solutions : **10 combina
 - Guide de présélection fondé sur le besoin d'agrégation, l'identité et le mode de déploiement (il ne remplace pas l'ADR)
 - Comparaison de 2 à 3 architectures et copie d'un brouillon d'ADR
 - PWA installable sur navigateur compatible, utilisable hors connexion après une première visite réussie
-- 0 dépendance et 0 build ; données maintenues dans \`patterns.json\` (pas de backend, stockage utilisateur ou télémétrie intégrée)
+- 0 dépendance et 0 build ; données maintenues dans `patterns.json` (pas de backend, stockage utilisateur ou télémétrie intégrée)
 
 ## Exécution et déploiement
-Lancer un serveur statique depuis la racine du portail :
-\`\`\`sh
+Lancer un serveur statique depuis la racine de ce dépôt :
+```sh
 python3 -m http.server 8080
 # http://localhost:8080/
-\`\`\`
+```
 
-Dans le dépôt du portail, accessible via :
-\`https://sims07.github.io/tools-portal/front-pattern-catalog/\`.
-
-**Migration vers un dépôt GitHub dédié :** déplacer tous les fichiers de ce dossier à la racine de \`Sims07/front-pattern-catalog\` ; activer GitHub Pages sur \`main / root\` ; changer le lien de la vignette du portail vers \`https://sims07.github.io/front-pattern-catalog/\`. La PWA et les liens de ressources sont relatifs ; adapter uniquement le lien « Portail des outils » (actuellement \`../index.html\`) vers l'URL absolue du portail.
+Après activation de GitHub Pages sur la branche `main` à la racine, le site sera disponible à l'adresse https://sims07.github.io/front-pattern-catalog/.
 
 ## Intégration au portail
 
 Une PR distincte dans `Sims07/tools-portal` ajoute la vignette, l'ouverture en iframe, le lien GitHub, le suivi d'usage du portail et le raccourci PWA.
 
 ## Ajouter un pattern
-Ajouter une entrée à \`patterns.json\` avec un identifiant unique, un ensemble de tags connus, des éléments de diagramme ordonnés, les bénéfices, limites, sécurité et observabilité. Les références sont résolues par identifiant depuis \`sources\`. Vérifier :
-\`\`\`sh
+Ajouter une entrée à `patterns.json` avec un identifiant unique, un ensemble de tags connus, des éléments de diagramme ordonnés, les bénéfices, limites, sécurité et observabilité. Les références sont résolues par identifiant depuis `sources`. Vérifier :
+```sh
 node --test tests/catalog.test.mjs
-\`\`\`
+```
 
 ## Interprétation
 - **BFF** = frontière dédiée à un type d'expérience, pas synonyme de proxy/gateway.

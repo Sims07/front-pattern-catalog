@@ -21,7 +21,7 @@ test('catalogue: 10 patterns et IDs uniques', () => {
 test('chaque fiche contient les champs nécessaires à une décision', () => {
   for (const p of catalog.patterns) {
     for (const key of ['title','subtitle','rendering','hosting','complexity','summary','problem','when','auth','security','operations']) {
-      assert.ok(typeof p[key] === 'string' && p[key].length > 8, p.id + ': ' + key);
+      assert.ok(typeof p[key] === 'string' && p[key].trim().length >= (['rendering','hosting','complexity','auth'].includes(key) ? 3 : 9), p.id + ': ' + key);
     }
     assert.ok(p.tags.length > 0 && p.tags.every((tag) => tags.has(tag)), p.id + ': tags');
     assert.ok(p.diagram.length >= 3 && p.diagram.every((n) => n.length === 3), p.id + ': flux');

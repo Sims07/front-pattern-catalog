@@ -33,7 +33,7 @@ dialog{padding:0;border:1px solid #536781;border-radius:20px;background:#111a2b;
 </head>
 <body>
 <header class="topbar"><div class="wrap topbar-inner">
-  <a class="brand" href="./index.html" aria-label="Accueil du catalogue"><span class="mark" aria-hidden="true">⌘</span><span><small>Architecture Solutions</small>Frontend Pattern Catalog</span></a>
+  <a class="brand" href="./index.html" aria-label="Accueil du catalogue"><span class="mark" aria-hidden="true">⌘</span><span><small>Architecture Solutions</small>Front Pattern Catalog</span></a>
   <nav class="top-links" aria-label="Navigation"><a href="#catalogue">Catalogue</a><a href="#repères">Repères</a><a href="https://sims07.github.io/tools-portal/">← Portail des outils</a></nav>
 </div></header>
 <section class="hero"><div class="wrap hero-grid">
@@ -86,7 +86,7 @@ dialog{padding:0;border:1px solid #536781;border-radius:20px;background:#111a2b;
 </section>
 <section class="references" aria-labelledby="sourcesTitle"><h2 id="sourcesTitle">Références utilisées</h2><ul id="referencesList"></ul><p class="hint">Fiches pédagogiques synthétiques : elles ne remplacent pas une étude de charge, de sécurité et d'exploitation pour chaque produit.</p></section>
 </main>
-<footer><div class="wrap footer-row"><span>Frontend Pattern Catalog · Architecture Solutions · Static PWA</span><span>Données versionnées dans patterns.json · Rien n'est envoyé à un serveur par ce catalogue</span></div></footer>
+<footer><div class="wrap footer-row"><span>Front Pattern Catalog · Architecture Solutions · Static PWA</span><span>Données versionnées dans patterns.json · Rien n'est envoyé à un serveur par ce catalogue</span></div></footer>
 <dialog id="detail" aria-label="Fiche de pattern"><div class="dialog-body" id="detailContent"></div></dialog>
 <div id="notice" role="status" aria-live="polite" hidden></div>
 <script>
@@ -110,7 +110,7 @@ function render(){
 function openDetail(id){
  var p=find(id);if(!p)return;
  var links=p.refs.map(function(key){return refs[key]}).filter(Boolean).map(function(r){return '<a href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer">'+esc(r.title)+'</a>'}).join("");
- details.innerHTML='<div class="dialog-head"><div><span class="eyebrow">Fiche de référence / '+esc(p.subtitle)+'</span><h2>'+esc(p.title)+'</h2><p class="detail-text">'+esc(p.summary)+'</p></div><button type="button" class="close" data-close>Fermer ✕</button></div><div class="facts"><span>Rendu : '+esc(p.rendering)+'</span><span>Hébergement : '+esc(p.hosting)+'</span><span>Complexité : '+esc(p.complexity)+'</span></div>'+chain(p,true)+'<h3>Problème et intention</h3><p class="detail-text">'+esc(p.problem)+'</p><h3>Quand l'envisager ?</h3><p class="detail-text">'+esc(p.when)+'</p><div class="cols"><div><h3>Atouts</h3>'+list(p.benefits)+'</div><div><h3>Compromis</h3>'+list(p.tradeoffs)+'</div></div><div class="warning"><strong>Sécurité et identité.</strong> '+esc(p.security)+'</div><h3>Exploitation & observabilité</h3><p class="detail-text">'+esc(p.operations)+'</p><h3>Références</h3><div class="source-links">'+links+'</div><div class="dialog-actions"><button type="button" class="btn" data-copy="'+esc(p.id)+'">Copier la fiche Markdown</button><button type="button" class="btn primary" data-toggle="'+esc(p.id)+'">'+(selected.has(p.id)?'Retirer de la comparaison':'Ajouter à la comparaison')+'</button></div>';
+ details.innerHTML='<div class="dialog-head"><div><span class="eyebrow">Fiche de référence / '+esc(p.subtitle)+'</span><h2>'+esc(p.title)+'</h2><p class="detail-text">'+esc(p.summary)+'</p></div><button type="button" class="close" data-close>Fermer ✕</button></div><div class="facts"><span>Rendu : '+esc(p.rendering)+'</span><span>Hébergement : '+esc(p.hosting)+'</span><span>Complexité : '+esc(p.complexity)+'</span></div>'+chain(p,true)+'<h3>Problème et intention</h3><p class="detail-text">'+esc(p.problem)+'</p><h3>Quand l&#39;envisager ?</h3><p class="detail-text">'+esc(p.when)+'</p><div class="cols"><div><h3>Atouts</h3>'+list(p.benefits)+'</div><div><h3>Compromis</h3>'+list(p.tradeoffs)+'</div></div><div class="warning"><strong>Sécurité et identité.</strong> '+esc(p.security)+'</div><h3>Exploitation & observabilité</h3><p class="detail-text">'+esc(p.operations)+'</p><h3>Références</h3><div class="source-links">'+links+'</div><div class="dialog-actions"><button type="button" class="btn" data-copy="'+esc(p.id)+'">Copier la fiche Markdown</button><button type="button" class="btn primary" data-toggle="'+esc(p.id)+'">'+(selected.has(p.id)?'Retirer de la comparaison':'Ajouter à la comparaison')+'</button></div>';
  dialog.showModal();
 }
 function toggle(id,enabled){
