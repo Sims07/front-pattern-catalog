@@ -36,7 +36,7 @@ Les diagrammes montrent des architectures *illustratives*, pas une obligation d'
 ## Tester
 
 ```sh
-node --test tests/*.test.mjs
+node --test tests/catalog.test.mjs
 python3 -m http.server 8080
 # http://localhost:8080/
 ```
