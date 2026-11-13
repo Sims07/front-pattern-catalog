@@ -1,7 +1,7 @@
 {
-  "name": "Front Pattern Catalog — Architecture Solutions",
+  "name": "Front Pattern Catalog — web, mobile & serverless",
   "short_name": "Front Patterns",
-  "description": "Guide interactif des architectures Frontend, BFF REST, GraphQL et serverless.",
+  "description": "15 architectures web et mobile : BFF REST, GraphQL, SSR, SSG, fonctions et workflows serverless, avec schémas verticaux détaillés.",
   "id": "./",
   "start_url": "./index.html",
   "scope": "./",
