@@ -1,39 +1,57 @@
 # Front Pattern Catalog
 
-Catalogue d'architecture à destination des architectes solutions : **10 combinaisons frontend, BFF, rendu et hébergement** avec des schémas, critères d'arbitrage, fiches de sécurité et export Markdown de fiches/ADR.
+Catalogue pédagogique de **15 architectures frontend**, pour architectes solutions et équipes produits, compatible GitHub Pages.
 
-## Fonctionnalités
-- Recherche et filtres : direct sans BFF, BFF REST, BFF GraphQL, serverless, SSR/SSG
-- Schéma de flux et fiche détaillée pour chaque pattern
-- Guide de présélection fondé sur le besoin d'agrégation, l'identité et le mode de déploiement (il ne remplace pas l'ADR)
-- Comparaison de 2 à 3 architectures et copie d'un brouillon d'ADR
-- PWA installable sur navigateur compatible, utilisable hors connexion après une première visite réussie
-- 0 dépendance et 0 build ; données maintenues dans `patterns.json` (pas de backend, stockage utilisateur ou télémétrie intégrée)
+**Nouveautés :** explications sans jargon de CSR, SSR, SSG, BFF, GraphQL ; glossaire de 14 termes ; distinction **Web/PWA versus mobile natif** ; fiches avec **schémas verticaux multi-composants et flèches**, protocole de chaque liaison, déroulé étape par étape, exemples et points de vigilance ; section complète sur l'exécution **serverless** (trigger, compute, état, scalabilité, coûts/risques).
 
-## Exécution et déploiement
-Lancer un serveur statique depuis la racine de ce dépôt :
+## Patterns
+
+- **Direct (sans BFF)** : SPA/REST, SPA/GraphQL, mobile natif/REST, front statique + fonctions HTTP.
+- **BFF** : REST web, GraphQL web, BFF distincts pour web et mobile, SSR + BFF.
+- **Rendu web** : CSR (navigateur), SSR (serveur), SSG (pages générées au build), SSR edge.
+- **Serverless** : Functions REST avec BFF, GraphQL managé + résolveurs, Functions directes, traitements asynchrones avec queue et DLQ, workflows orchestrés.
+- **Composition organisationnelle** : micro-frontends avec BFF par domaine.
+
+**Un pattern n'est pas une stack exclusive :** le mode de rendu (SSR/SSG/CSR), le contrat API (REST/GraphQL), la frontière BFF et l'hébergement (serverless ou non) sont des dimensions souvent combinables.
+
+## L'interface
+
+- Cartes : aperçu horizontal complet du parcours, canaux compatibles, filtres et recherche.
+- Fiche : explication « En clair », schéma **de haut en bas** (nœuds, branches, liaisons), légende, détails des flux et points transverses.
+- Sections : parcours étape par étape, exemple d'utilisation, avantages, compromis, sécurité, mise en œuvre, exploitation ; encart approfondi pour les 5 patterns serverless.
+- Comparer 2–3 patterns ; copier l'ADR Markdown et les fiches avec étapes et architecture.
+- Assistant d'orientation indicatif : canal web/mobile, agrégation d'APIs, identité et hébergement.
+
+Les diagrammes montrent des architectures *illustratives*, pas une obligation d'installer chaque brique. Les liaisons CDN/ressources statiques sont distinguées des appels API ; en particulier, le mobile natif ne télécharge pas la SPA du CDN. Les branches du graphe décrivent les flux entre composants ; les chemins d'authentification et la télémétrie peuvent figurer dans les éléments transverses.
+
+## Implémentation / exploitation
+
+- Site statique en HTML, CSS, JS ; aucune compilation ni dépendance runtime.
+- `patterns.json` : textes, références, canaux, architecture à étages `stages/nodes/links`, glossaire.
+- `diagrams.js` : moteur SVG autonome (flèches colorées par type, branches, niveaux et protocole).
+- PWA : `sw.js`, `manifest.webmanifest`, icônes, cache hors ligne isolé au périmètre de l'application.
+- Aucun backend ou stockage de données personnelles.
+- Sources officielles : Microsoft Azure BFF, MDN rendu web, IETF OAuth, AWS Lambda/serverless, Next.js, Apollo GraphQL.
+
+## Tester
+
 ```sh
+node --test tests/*.test.mjs
 python3 -m http.server 8080
 # http://localhost:8080/
 ```
 
-Après activation de GitHub Pages sur la branche `main` à la racine, le site sera disponible à l'adresse https://sims07.github.io/front-pattern-catalog/.
+## Déployer
 
-## Intégration au portail
+Activer GitHub Pages dans les paramètres du dépôt : **Deploy from a branch → main → / (root)** après fusion de la PR.
+Site : https://sims07.github.io/front-pattern-catalog/
 
-Une PR distincte dans `Sims07/tools-portal` ajoute la vignette, l'ouverture en iframe, le lien GitHub, le suivi d'usage du portail et le raccourci PWA.
+Le portail principal référence ce site via https://sims07.github.io/tools-portal/ et son lien GitHub.
 
-## Ajouter un pattern
-Ajouter une entrée à `patterns.json` avec un identifiant unique, un ensemble de tags connus, des éléments de diagramme ordonnés, les bénéfices, limites, sécurité et observabilité. Les références sont résolues par identifiant depuis `sources`. Vérifier :
-```sh
-node --test tests/catalog.test.mjs
-```
+## Ajouter ou ajuster un pattern
 
-## Interprétation
-- **BFF** = frontière dédiée à un type d'expérience, pas synonyme de proxy/gateway.
-- **GraphQL** = protocole de consultation des données, possible avec ou sans BFF.
-- **Serverless** = modèle d'exécution (fonctions, edge), compatible avec les BFF.
-- **SSR/SSG/CSR** = stratégies de rendu ; elles peuvent cohabiter et ne dictent pas à elles seules le contrat API.
-- Sécurité des applications web OAuth : voir **RFC 10017 (2026)**, notamment la différence BFF / token-mediating / client OAuth dans le navigateur.
+Modifier `patterns.json` : une fiche contient les champs existants, `audience` (`web`, `mobile`), `simple`, `steps`, `implementation`, `example`, `preview`, `architecture.stages` (chaque nœud a un ID unique, un titre, une description et une catégorie), `architecture.links` (références aux IDs, protocole, catégorie du flux) et, pour les cas concernés, `serverless`. Les tests valident les liens et les couvertures. Les références des sources sont résolues par leur identifiant.
 
-Les patterns sont des archétypes, non des recettes universelles. Conserver les hypothèses de charge, sécurité, SLA, ownership et coûts dans l'ADR.
+## Licence
+
+Contenu documentaire réutilisable sous les conditions de la licence du projet.
