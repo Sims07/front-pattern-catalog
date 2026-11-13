@@ -1,6 +1,6 @@
 /* Service worker autonome ; scope limité au dossier front-pattern-catalog. */
-const VERSION = 'front-patterns-v1';
-const SHELL = ['./', './index.html', './patterns.json', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png'];
+const VERSION = 'front-patterns-v2';
+const SHELL = ['./', './index.html', './patterns.json', './diagrams.js', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(VERSION).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()));
 });
