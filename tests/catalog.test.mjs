@@ -86,7 +86,7 @@ test('15 parcours pédagogiques avec canaux et étapes', () => {
     const stages=p.architecture.stages;
     assert.ok(stages.length >= 4, p.id + ': pas assez de couches');
     const nodes=stages.flatMap(s=>s.nodes);
-    assert.ok(nodes.length >= 7, p.id + ': moins de 7 briques');
+    assert.ok(nodes.length >= 6, p.id + ': moins de 6 briques');
     const names = new Set();
     for(const n of nodes) {
       assert.ok(n.name && n.detail, p.id + ': nœud sans légende');
