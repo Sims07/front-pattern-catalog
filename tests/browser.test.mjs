@@ -34,6 +34,7 @@ test('desktop : recherche, schéma vertical complet et parcours serverless', asy
   assert.ok(await dialog.locator('.flow-details li').count() >= 8);
   await page.screenshot({ path: 'artifacts/architecture-serverless-desktop.png', fullPage: false });
   await dialog.getByRole('button', { name: /Fermer/ }).click();
+  await page.getByRole('button', { name: 'Tous', exact: true }).click();
   await page.locator('#search').fill('mobile natif');
   assert.ok(await page.locator('.pattern').count() >= 1);
   assert.deepEqual(errors, []);
