@@ -1,0 +1,541 @@
+{
+  "version": 1,
+  "updated": "2026-11-13",
+  "description": "Catalogue de patterns applicatifs frontend. Choix d'architecture et de déploiement sont deux dimensions indépendantes.",
+  "sources": [
+    {
+      "id": "oauth",
+      "title": "IETF — RFC 10017 (OAuth 2.0 Browser-Based Applications, 2026)",
+      "url": "https://www.rfc-editor.org/rfc/rfc10017.html"
+    },
+    {
+      "id": "azure",
+      "title": "Microsoft Azure Architecture Center — Backends for Frontends",
+      "url": "https://learn.microsoft.com/azure/architecture/patterns/backends-for-frontends"
+    },
+    {
+      "id": "apollo",
+      "title": "Apollo GraphQL — GraphQL Adoption Patterns",
+      "url": "https://www.apollographql.com/docs/graphos/resources/guides/graphql-adoption-patterns"
+    },
+    {
+      "id": "aws",
+      "title": "AWS — Serverless Multi-Tier Architectures, SPA",
+      "url": "https://docs.aws.amazon.com/whitepapers/latest/serverless-multi-tier-architectures-api-gateway-lambda/single-page-application.html"
+    },
+    {
+      "id": "next",
+      "title": "Next.js — Backend for Frontend",
+      "url": "https://nextjs.org/docs/app/guides/backend-for-frontend"
+    }
+  ],
+  "patterns": [
+    {
+      "id": "spa-rest-direct",
+      "title": "SPA → API REST directe",
+      "subtitle": "Sans BFF · simplicité",
+      "tags": [
+        "direct"
+      ],
+      "rendering": "CSR",
+      "hosting": "CDN statique",
+      "complexity": "Faible",
+      "auth": "OAuth public + PKCE ou accès anonyme",
+      "summary": "Le navigateur appelle directement une API REST exposée aux clients web.",
+      "problem": "L'expérience reste simple et l'API répond déjà aux besoins du front.",
+      "when": "Une API cohérente, peu de composition de données et une équipe réduite.",
+      "benefits": [
+        "Un composant serveur spécifique au front en moins",
+        "Déploiement statique indépendant de l'API",
+        "Flux et responsabilités faciles à comprendre"
+      ],
+      "tradeoffs": [
+        "Multiplication des appels et couplage aux contrats API",
+        "CORS, exposition des endpoints et gestion des jetons côté navigateur",
+        "La logique de composition risque de migrer dans la SPA"
+      ],
+      "security": "Client OAuth public avec Authorization Code + PKCE ; pas de secret client dans le navigateur. Valider autorisations et scopes côté API.",
+      "operations": "Superviser erreurs front, API et performances réseau réelles.",
+      "diagram": [
+        [
+          "Navigateur SPA",
+          "UI / fetch",
+          "client"
+        ],
+        [
+          "API REST",
+          "ressource",
+          "api"
+        ],
+        [
+          "Services métier",
+          "données",
+          "service"
+        ]
+      ],
+      "refs": [
+        "oauth",
+        "azure"
+      ]
+    },
+    {
+      "id": "spa-graphql-direct",
+      "title": "SPA → API GraphQL directe",
+      "subtitle": "Sans BFF · requêtes ciblées",
+      "tags": [
+        "direct",
+        "graphql"
+      ],
+      "rendering": "CSR",
+      "hosting": "CDN statique",
+      "complexity": "Modérée",
+      "auth": "OAuth public + PKCE ou accès anonyme",
+      "summary": "La SPA interroge une API GraphQL mutualisée sans BFF dédié à l'expérience.",
+      "problem": "Plusieurs écrans requièrent des vues de données variables sans multiplier les endpoints REST.",
+      "when": "Un graphe existant fournit déjà un contrat stable à plusieurs consommateurs.",
+      "benefits": [
+        "Sélection des champs par écran",
+        "Évolutions de vues sans créer un endpoint REST par page",
+        "Typage du schéma et outillage de requêtes"
+      ],
+      "tradeoffs": [
+        "Dépendance au schéma partagé et à sa gouvernance",
+        "Complexité des résolveurs, batching, cache et erreurs partielles",
+        "Contrôle des coûts et de la profondeur des requêtes nécessaire"
+      ],
+      "security": "Authentifier le client navigateur ; imposer autorisation au niveau des champs/objets et limites de complexité.",
+      "operations": "Surveiller coût des requêtes, N+1, latence des résolveurs et erreurs partielles.",
+      "diagram": [
+        [
+          "Navigateur SPA",
+          "requête GraphQL",
+          "client"
+        ],
+        [
+          "API GraphQL",
+          "schéma partagé",
+          "api"
+        ],
+        [
+          "Services métier",
+          "résolveurs",
+          "service"
+        ]
+      ],
+      "refs": [
+        "apollo",
+        "oauth"
+      ]
+    },
+    {
+      "id": "bff-rest",
+      "title": "SPA + BFF REST",
+      "subtitle": "BFF dédié · orchestration",
+      "tags": [
+        "bff-rest"
+      ],
+      "rendering": "CSR",
+      "hosting": "Statique + runtime",
+      "complexity": "Modérée",
+      "auth": "Session HttpOnly côté BFF",
+      "summary": "Une API REST dédiée à l'expérience web agrège les services et expose des ressources adaptées aux écrans.",
+      "problem": "La SPA dépend de trop de services, de contrats hétérogènes ou de tokens sensibles.",
+      "when": "Plusieurs backends, logique d'assemblage et sécurité de session centralisée.",
+      "benefits": [
+        "Composition de données au plus près du besoin UI",
+        "Isolation des APIs métiers et des jetons OAuth",
+        "Évolution synchronisée avec l'équipe front"
+      ],
+      "tradeoffs": [
+        "Runtime supplémentaire à maintenir et à dimensionner",
+        "Risque de BFF trop épais ou de duplication de logique métier",
+        "Gestion des sessions, cookies, CSRF et timeouts"
+      ],
+      "security": "BFF client OAuth confidentiel, tokens conservés côté serveur, cookie de session Secure/HttpOnly/SameSite ; protection CSRF indispensable pour les opérations sensibles.",
+      "operations": "Tracer navigateur → BFF → services, SLO, fan-out, retries et timeouts.",
+      "diagram": [
+        [
+          "Navigateur SPA",
+          "cookie session",
+          "client"
+        ],
+        [
+          "BFF REST",
+          "agrégation + OAuth",
+          "bff"
+        ],
+        [
+          "APIs métier",
+          "REST / events",
+          "service"
+        ]
+      ],
+      "refs": [
+        "oauth",
+        "azure"
+      ]
+    },
+    {
+      "id": "bff-graphql",
+      "title": "SPA + BFF GraphQL",
+      "subtitle": "BFF dédié · graphe d'expérience",
+      "tags": [
+        "bff-graphql",
+        "graphql"
+      ],
+      "rendering": "CSR",
+      "hosting": "Statique + runtime",
+      "complexity": "Élevée",
+      "auth": "Session HttpOnly côté BFF",
+      "summary": "Le BFF expose un schéma GraphQL façonné pour la SPA et résout les données via plusieurs services.",
+      "problem": "Les pages agrègent des ressources hétérogènes et les besoins en champs changent fréquemment.",
+      "when": "Une UI riche, plusieurs sources et une équipe capable d'opérer un graphe maîtrisé.",
+      "benefits": [
+        "Contrat typé proche des besoins des écrans",
+        "Moins d'aller-retours de données quand la composition est pertinente",
+        "Gestion de l'authentification hors du navigateur"
+      ],
+      "tradeoffs": [
+        "N+1, pagination, invalidation du cache et observabilité plus difficiles",
+        "Coût des requêtes arbitraires : profondeur, complexité et quotas",
+        "Un BFF GraphQL n'est pas automatiquement une fédération de graphes"
+      ],
+      "security": "BFF OAuth confidentiel, sessions par cookies, CSRF, contrôle d'accès par champ et limitation de coût des requêtes.",
+      "operations": "Instrumenter résolveurs, DataLoader/batching, coûts, latence et erreurs partielles.",
+      "diagram": [
+        [
+          "Navigateur SPA",
+          "requête GraphQL",
+          "client"
+        ],
+        [
+          "BFF GraphQL",
+          "schéma d'UI",
+          "bff"
+        ],
+        [
+          "APIs métier",
+          "REST / GraphQL",
+          "service"
+        ]
+      ],
+      "refs": [
+        "apollo",
+        "oauth",
+        "azure"
+      ]
+    },
+    {
+      "id": "ssr-bff",
+      "title": "SSR avec BFF intégré",
+      "subtitle": "Rendu serveur · expérience unifiée",
+      "tags": [
+        "rendering",
+        "bff-rest"
+      ],
+      "rendering": "SSR / hybride",
+      "hosting": "Runtime web",
+      "complexity": "Élevée",
+      "auth": "Session serveur",
+      "summary": "Le serveur web rend les pages et agit également comme couche d'accès dédiée aux services.",
+      "problem": "Réduire le délai du premier rendu tout en gardant des appels et secrets côté serveur.",
+      "when": "Pages publiques ou hybrides, besoins de rendu côté serveur et nombreuses interactions authentifiées.",
+      "benefits": [
+        "HTML initial calculé côté serveur",
+        "Accès aux services et secrets maîtrisés côté runtime",
+        "Un déploiement peut regrouper rendu et endpoints BFF"
+      ],
+      "tradeoffs": [
+        "Dépendance à un runtime pour les pages dynamiques",
+        "Hydratation, cache, charge serveur et fuites inter-sessions à maîtriser",
+        "Le SSR seul ne remplace ni les contrôles d'accès ni les APIs métier"
+      ],
+      "security": "Éviter de transférer des secrets dans l'HTML initial ; cookies sécurisés, CSRF et cache privé par utilisateur.",
+      "operations": "Observer TTFB, temps de rendu, cache, hydration et fan-out serveur.",
+      "diagram": [
+        [
+          "Navigateur",
+          "HTML + hydratation",
+          "client"
+        ],
+        [
+          "Serveur SSR + BFF",
+          "routes / vues",
+          "bff"
+        ],
+        [
+          "APIs métier",
+          "services",
+          "service"
+        ]
+      ],
+      "refs": [
+        "next",
+        "oauth"
+      ]
+    },
+    {
+      "id": "ssg-direct",
+      "title": "SSG / Jamstack + APIs",
+      "subtitle": "Rendu statique · contenu d'abord",
+      "tags": [
+        "rendering",
+        "direct"
+      ],
+      "rendering": "SSG / CSR ciblé",
+      "hosting": "CDN statique",
+      "complexity": "Faible",
+      "auth": "Anonyme ou OAuth public si nécessaire",
+      "summary": "Les pages sont pré-rendues lors du build ; les parties interactives appellent des APIs directement.",
+      "problem": "Le contenu est peu personnalisé et la performance de diffusion prime.",
+      "when": "Documentation, catalogue, marketing, contenu éditorial ou applications avec faible personnalisation.",
+      "benefits": [
+        "Distribution rapide depuis le CDN et hébergement simple",
+        "Très faible dépendance à un runtime de rendu",
+        "Excellent socle pour contenu indexable et PWA"
+      ],
+      "tradeoffs": [
+        "Rebuild ou invalidation nécessaires si le contenu change",
+        "Interactions dynamiques et données privées toujours tributaires d'APIs",
+        "Pas adapté seul aux pages réellement personnalisées en temps réel"
+      ],
+      "security": "Aucun secret serveur dans les artefacts statiques ; si API protégée, mêmes contraintes qu'une SPA directe.",
+      "operations": "Suivre qualité du build, invalidation CDN, Core Web Vitals et disponibilité API.",
+      "diagram": [
+        [
+          "Build SSG",
+          "HTML statique",
+          "build"
+        ],
+        [
+          "CDN / navigateur",
+          "pages + JS",
+          "client"
+        ],
+        [
+          "API REST",
+          "zones dynamiques",
+          "api"
+        ]
+      ],
+      "refs": [
+        "next",
+        "aws"
+      ]
+    },
+    {
+      "id": "serverless-bff-rest",
+      "title": "Front CDN + BFF serverless REST",
+      "subtitle": "Serverless · fonctions HTTP",
+      "tags": [
+        "serverless",
+        "bff-rest"
+      ],
+      "rendering": "CSR / SSG",
+      "hosting": "CDN + Functions",
+      "complexity": "Modérée",
+      "auth": "Session BFF ou identité API",
+      "summary": "Un front statique appelle des fonctions HTTP qui jouent le rôle de BFF REST.",
+      "problem": "Obtenir composition et sécurité de type BFF sans opérer un serveur permanent.",
+      "when": "Trafic variable, équipe plateforme serverless et endpoints courts/stateless.",
+      "benefits": [
+        "Elasticité et facturation à l'usage selon fournisseur",
+        "Déploiement découplé du front et des fonctions",
+        "Agrégation et secrets tenus hors du bundle navigateur"
+      ],
+      "tradeoffs": [
+        "Cold starts, quotas, durées maximales et limites de connexion",
+        "Session, cookies et CSRF à concevoir explicitement",
+        "Dépendance au fournisseur, latence et coûts à surveiller"
+      ],
+      "security": "Les fonctions ne sont BFF que si elles assument réellement le rôle dédié au front. Si OAuth confidentiel : gestion serveur des jetons et cookie sécurisé.",
+      "operations": "Mesurer démarrages à froid, coût par requête, erreurs fonctions et latence de bout en bout.",
+      "diagram": [
+        [
+          "SPA / SSG CDN",
+          "assets statiques",
+          "client"
+        ],
+        [
+          "API Gateway",
+          "HTTPS",
+          "api"
+        ],
+        [
+          "Functions BFF",
+          "REST + OAuth",
+          "bff"
+        ],
+        [
+          "Services métier",
+          "backend",
+          "service"
+        ]
+      ],
+      "refs": [
+        "aws",
+        "oauth",
+        "azure"
+      ]
+    },
+    {
+      "id": "serverless-graphql",
+      "title": "Front CDN + GraphQL serverless",
+      "subtitle": "Serverless · graphe",
+      "tags": [
+        "serverless",
+        "bff-graphql",
+        "graphql"
+      ],
+      "rendering": "CSR / SSG",
+      "hosting": "CDN + Functions",
+      "complexity": "Élevée",
+      "auth": "Session BFF ou jetons selon topology",
+      "summary": "Le front accède à un endpoint GraphQL déployé sur fonctions serverless.",
+      "problem": "Combiner la souplesse des requêtes GraphQL et l'élasticité sans serveur permanent.",
+      "when": "Graphe de complexité maîtrisée, pics de trafic et fonctions compatibles avec les charges des résolveurs.",
+      "benefits": [
+        "Données adaptées aux vues sans multiplier les routes",
+        "Dimensionnement automatique de certaines charges",
+        "Déploiement en petites unités selon le fournisseur"
+      ],
+      "tradeoffs": [
+        "Résolveurs fragmentés, cold starts et appels en cascade",
+        "Durée d'exécution, connexion aux données, cache et coût variable",
+        "Transactions distribuées difficiles à maîtriser"
+      ],
+      "security": "Limiter profondeur/coût, authentifier et autoriser au niveau des données ; éviter les jetons exposés si le graphe joue le rôle de BFF.",
+      "operations": "Tracer par opération et résolveur, limiter fan-out et budget de requête.",
+      "diagram": [
+        [
+          "SPA / CDN",
+          "GraphQL",
+          "client"
+        ],
+        [
+          "Gateway GraphQL",
+          "schéma / contrôle",
+          "api"
+        ],
+        [
+          "Functions",
+          "résolveurs",
+          "bff"
+        ],
+        [
+          "Services métier",
+          "backend",
+          "service"
+        ]
+      ],
+      "refs": [
+        "apollo",
+        "aws",
+        "oauth"
+      ]
+    },
+    {
+      "id": "edge-ssr",
+      "title": "SSR à l'Edge + API",
+      "subtitle": "Edge · rendu proche de l'utilisateur",
+      "tags": [
+        "serverless",
+        "rendering"
+      ],
+      "rendering": "SSR / hybride",
+      "hosting": "Edge runtime + CDN",
+      "complexity": "Élevée",
+      "auth": "Session contrôlée à l'edge / origine",
+      "summary": "Le rendu dynamique et certaines routes sont exécutés dans un runtime edge proche de l'utilisateur.",
+      "problem": "Réduire la latence de premier octet pour une audience distribuée et du contenu adaptable.",
+      "when": "Audience géographiquement distribuée, logique de rendu compatible et accès aux données optimisé.",
+      "benefits": [
+        "Rendu dynamique distribué et adaptation des réponses",
+        "CDN et cache de proximité",
+        "Réduction possible de la latence sur les traitements locaux à l'edge"
+      ],
+      "tradeoffs": [
+        "Contraintes CPU, APIs runtime, taille des bundles et connexions",
+        "La proximité edge n'accélère pas une base distante",
+        "Sécurité, sessions et cohérence des caches plus complexes"
+      ],
+      "security": "Ne pas mettre de secrets dans le navigateur ; contrôler personnalisation, clés de cache et identité entre edge et backend.",
+      "operations": "Observer p95 par région, cache hit ratio et temps d'accès aux origines.",
+      "diagram": [
+        [
+          "Navigateur",
+          "demande HTML",
+          "client"
+        ],
+        [
+          "Edge SSR",
+          "rendu + routes",
+          "bff"
+        ],
+        [
+          "API / origine",
+          "données privées",
+          "service"
+        ]
+      ],
+      "refs": [
+        "next",
+        "oauth"
+      ]
+    },
+    {
+      "id": "microfront-bff",
+      "title": "Micro-frontends + BFF dédiés",
+      "subtitle": "Multi-équipes · autonomie",
+      "tags": [
+        "bff-rest",
+        "rendering"
+      ],
+      "rendering": "CSR / hybride",
+      "hosting": "Plusieurs runtimes",
+      "complexity": "Très élevée",
+      "auth": "SSO + sessions coordonnées",
+      "summary": "Plusieurs expériences front indépendantes possèdent leurs frontières et éventuellement leurs propres BFF.",
+      "problem": "Les équipes doivent livrer de façon autonome sans coupler chaque domaine à un front monolithique.",
+      "when": "Organisation multi-équipes établie, frontières métier nettes et plateforme de composition mature.",
+      "benefits": [
+        "Autonomie de livraison selon des domaines ou parcours",
+        "BFF façonné pour chaque expérience",
+        "Évolution progressive possible"
+      ],
+      "tradeoffs": [
+        "Duplication de dépendances, cohérence UX et coût opérationnel",
+        "Composition, navigation, contrats et performances difficiles",
+        "Gouvernance transversale et ownership indispensables"
+      ],
+      "security": "SSO et contrôle CSRF/cookies cohérents entre expériences ; ne pas confondre authentification unifiée et autorisation métier.",
+      "operations": "Contract testing, traces inter-fronts, budgets bundle et déploiement coordonné.",
+      "diagram": [
+        [
+          "Shell web",
+          "navigation",
+          "client"
+        ],
+        [
+          "Front domaine A",
+          "équipe A",
+          "client"
+        ],
+        [
+          "BFF A",
+          "contrat A",
+          "bff"
+        ],
+        [
+          "Services A / B",
+          "domaines",
+          "service"
+        ]
+      ],
+      "refs": [
+        "azure",
+        "oauth"
+      ]
+    }
+  ]
+}
