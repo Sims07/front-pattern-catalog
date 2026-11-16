@@ -1,11 +1,11 @@
 {
   "version": 1,
   "start": "purpose",
-  "intro": "Cet arbre guide un choix d'architecture. Il donne des pistes, pas un classement : confirme toujours sécurité, volumétrie, organisation et contraintes de déploiement dans un ADR.",
+  "intro": "Ce graphe aide à instruire une décision d'architecture. Les propositions sont indicatives : les contraintes de sécurité, de volumétrie, d'organisation et de déploiement restent à documenter dans un ADR.",
   "nodes": {
     "purpose": {
-      "title": "Quel produit souhaites-tu construire ?",
-      "help": "Commence par la nature de l'expérience, avant de choisir REST, GraphQL ou une technologie.",
+      "title": "Quel type de produit est concerné ?",
+      "help": "Qualifier le besoin avant d'arbitrer les modes de rendu, les contrats API et les technologies.",
       "choices": [
         {
           "label": "Un site où des éditeurs publient du contenu",
@@ -86,7 +86,7 @@
       ]
     },
     "channel": {
-      "title": "Quel canal utilisera l'application ?",
+      "title": "Quels canaux doivent être servis ?",
       "help": "Une SPA web et une application native iOS/Android ne partagent pas forcément les mêmes contraintes d'identité.",
       "choices": [
         {
@@ -159,7 +159,7 @@
           "why": "Le SSR rend l'HTML au serveur ; l'edge est une variante de déploiement à valider selon la latence vers les données."
         },
         {
-          "label": "Je veux une interface très interactive (CSR)",
+          "label": "Une interface fortement interactive (CSR)",
           "detail": "Le navigateur construit l'essentiel des vues",
           "to": "web-aggregation"
         }
@@ -175,7 +175,7 @@
           "to": "web-direct-protocol"
         },
         {
-          "label": "Oui, ou je veux une session gérée par un serveur",
+          "label": "Oui, ou une session doit être gérée côté serveur",
           "detail": "Plusieurs services ou exigences de sécurité",
           "to": "web-bff-protocol"
         }
@@ -295,7 +295,7 @@
       ]
     },
     "serverless-purpose": {
-      "title": "Que souhaites-tu exécuter à la demande ?",
+      "title": "Quel type d'exécution à la demande est envisagé ?",
       "help": "« Serverless » décrit l'exécution, pas la présence ou non d'un BFF.",
       "choices": [
         {
