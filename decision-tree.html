@@ -86,7 +86,7 @@ footer{border-top:1px solid var(--line);margin-top:60px;padding:22px 0;color:var
 .tree-intro{border:1px solid #3b586d;background:#142c3c;border-radius:14px;padding:14px 18px;margin-bottom:19px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
 .tree-intro p{font-size:13px;margin:0;color:#d1e6ed;max-width:720px}
 .tree-intro .jump-links{display:flex;flex-wrap:wrap;gap:8px}
-.tree-intro a{border-radius:30px;background:#203e50;padding:6px 10px;color:#b9f7f1;text-decoration:none;font-size:12px}
+.tree-intro button{border:1px solid #42778d;border-radius:30px;background:#203e50;padding:6px 10px;color:#b9f7f1;font:inherit;cursor:pointer;font-size:12px}.tree-intro button:hover{background:#285769}
 .full-tree-layout{display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:18px;align-items:start}
 .tree-map{min-width:0;border:1px solid #3d536f;border-radius:17px;padding:22px;background:linear-gradient(155deg,#142239,#101928)}
 .tree-map h2{font-size:22px;letter-spacing:-.035em;margin:0 0 6px}
@@ -164,7 +164,7 @@ footer{border-top:1px solid var(--line);margin-top:60px;padding:22px 0;color:var
 <div class="tree-intro" aria-label="Navigation dans l’arbre">
   <p><strong>Arbre complet :</strong> toutes les questions et toutes les issues sont visibles dès le départ. Clique sur une réponse pour colorer ton chemin, sans masquer les autres branches.</p>
   <nav class="jump-links" aria-label="Accès aux grandes branches">
-    <a href="#tree-cms">Contenu / CMS</a><a href="#tree-app">Applications web / mobile</a><a href="#tree-async">Traitements & serverless</a>
+    <button type="button" data-jump-to="tree-cms">Contenu / CMS</button><button type="button" data-jump-to="tree-app">Applications web / mobile</button><button type="button" data-jump-to="tree-async">Traitements & serverless</button>
   </nav>
 </div>
 <div class="full-tree-layout">
