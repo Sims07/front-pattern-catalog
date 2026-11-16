@@ -22,8 +22,8 @@
     if(!node)throw Error('Question inconnue : '+nodeId);
     routes++;
     var head=depth===0
-      ? '<div class="tree-root-head"><strong>'+esc(node.title)+'</strong><small>'+esc(node.help)+'</small></div>'
-      : '<div class="tree-question-head"><strong>'+esc(node.title)+'</strong><small>'+esc(node.help)+'</small></div>';
+      ? '<div class="tree-root-head"><span class="tree-step">Départ</span><strong>'+esc(node.title)+'</strong><small>'+esc(node.help)+'</small></div>'
+      : '<div class="tree-question-head"><span class="tree-step">Question '+(depth+1)+'</span><strong>'+esc(node.title)+'</strong><small>'+esc(node.help)+'</small></div>';
     var branches=node.choices.map(function(choice,i){
       var path=ancestors.concat([i]);
       var key=choiceKey(path), rootAnchor=depth===0?(' id="'+['tree-cms','tree-app','tree-async'][i]+'"'):'';
@@ -35,12 +35,13 @@
             return '<li><a href="'+esc(urlFor(id,key))+'" title="Lire la fiche de '+esc(p.title)+'">'+esc(p.title)+' ↗</a></li>';
           }).join('')+'</ul></div>';
       return '<div class="tree-branch" data-choice-path="'+key+'"'+rootAnchor+'>'+
+        '<span class="tree-option-label">Réponse '+(i+1)+' sur '+node.choices.length+'</span>'+ 
         '<button class="tree-choice" type="button" data-select-path="'+key+'" aria-pressed="false">'+
         '<strong><span class="choice-indicator">✓ Chemin retenu · </span>'+esc(choice.label)+'</strong>'+
         '<span>'+esc(choice.detail)+'</span></button>'+
         '<div class="tree-descendant">'+subtree+'</div></div>';
     }).join('');
-    return '<section class="tree-question'+(depth===0?' root':'')+'" data-node-path="'+choiceKey(ancestors)+'">'+
+    return '<section class="tree-question'+(depth===0?' root':'')+'" data-depth="'+depth+'" data-node-path="'+choiceKey(ancestors)+'">'+
       head+'<div class="tree-branches">'+branches+'</div></section>';
   }
 
@@ -86,6 +87,7 @@
     panel.querySelectorAll('.tree-choice.is-chosen').forEach(function(el){
       el.classList.remove('is-chosen');el.setAttribute('aria-pressed','false');
     });
+    panel.querySelectorAll('.tree-branch.is-on-path').forEach(function(el){el.classList.remove('is-on-path');});
     panel.querySelectorAll('.tree-leaf.is-chosen,.tree-question.is-current').forEach(function(el){
       el.classList.remove('is-chosen','is-current');
     });
@@ -95,6 +97,7 @@
         return el.dataset.choicePath===key;
       });
       if(branch){
+        branch.classList.add('is-on-path');
         var button=branch.querySelector(':scope > .tree-choice');
         if(button){button.classList.add('is-chosen');button.setAttribute('aria-pressed','true');}
         var leaf=branch.querySelector(':scope > .tree-descendant > .tree-leaf');
