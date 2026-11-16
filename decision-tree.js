@@ -232,7 +232,8 @@
   if(!graph)return;
   var choice=graph.byId.get('c:'+key),next=graph.byId.get('q:'+key)||graph.byId.get('l:'+key);
   if(!choice)return;
-  centerReadable([choice,next].concat(next&&next.children||[]).filter(Boolean));
+  // Un accès direct cible la réponse, sans éloigner le centre pour afficher ses descendants.
+  centerReadable([choice,next].filter(Boolean));
  }
  function zoomAt(factor,cx,cy){
   var old=scale,newScale=clamp(old*factor,MIN_SCALE,MAX_SCALE);
