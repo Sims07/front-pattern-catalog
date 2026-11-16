@@ -1,0 +1,369 @@
+{
+  "version": 1,
+  "start": "purpose",
+  "intro": "Cet arbre guide un choix d'architecture. Il donne des pistes, pas un classement : confirme toujours sécurité, volumétrie, organisation et contraintes de déploiement dans un ADR.",
+  "nodes": {
+    "purpose": {
+      "title": "Quel produit souhaites-tu construire ?",
+      "help": "Commence par la nature de l'expérience, avant de choisir REST, GraphQL ou une technologie.",
+      "choices": [
+        {
+          "label": "Un site où des éditeurs publient du contenu",
+          "detail": "Actualités, pages institutionnelles, portail documentaire…",
+          "to": "cms-model"
+        },
+        {
+          "label": "Une application métier interactive",
+          "detail": "Tableaux de bord, formulaires, parcours utilisateurs…",
+          "to": "channel"
+        },
+        {
+          "label": "Des traitements longs lancés depuis un front",
+          "detail": "Import, génération de rapports, workflow métier…",
+          "to": "background"
+        }
+      ]
+    },
+    "cms-model": {
+      "title": "Qui doit maîtriser la présentation des contenus ?",
+      "help": "Un CMS couplé rend lui-même les pages ; un headless fournit des données à des fronts autonomes.",
+      "choices": [
+        {
+          "label": "Le CMS doit aussi générer les pages",
+          "detail": "Thèmes et gabarits intégrés, édition et présentation réunies",
+          "patterns": [
+            "cms-coupled"
+          ],
+          "why": "Le CMS traditionnel évite d'opérer deux produits séparés lorsque ses thèmes couvrent le besoin."
+        },
+        {
+          "label": "Le front doit évoluer indépendamment du CMS",
+          "detail": "Web sur mesure, réutilisation multi-canal, REST/GraphQL",
+          "to": "cms-usage"
+        },
+        {
+          "label": "Le contenu ne change que lors des publications",
+          "detail": "Documentation statique ou pages peu personnalisées",
+          "patterns": [
+            "ssg-direct",
+            "cms-headless"
+          ],
+          "why": "La génération statique est légère ; un CMS headless reste pertinent si le workflow éditorial l'exige."
+        }
+      ]
+    },
+    "cms-usage": {
+      "title": "Sur combien de canaux ce contenu sera-t-il utilisé ?",
+      "help": "La réutilisation du contenu est un moteur du headless ; elle a un coût d'intégration et de prévisualisation.",
+      "choices": [
+        {
+          "label": "Principalement un site web",
+          "detail": "Un seul front web indépendant du CMS",
+          "patterns": [
+            "cms-headless",
+            "ssg-direct"
+          ],
+          "why": "Le CMS peut exposer les contenus à un site SSR ou SSG ; la stratégie de rendu reste un choix indépendant."
+        },
+        {
+          "label": "Site web et application mobile native",
+          "detail": "Même contenu, expériences et cycles de déploiement distincts",
+          "patterns": [
+            "cms-headless",
+            "multi-channel-bff"
+          ],
+          "why": "Le headless partage les modèles éditoriaux ; des BFF par canal peuvent être utiles pour les parcours applicatifs."
+        },
+        {
+          "label": "Plusieurs sites avec des rendus hétérogènes",
+          "detail": "Portail public, intranet, applications partenaires",
+          "patterns": [
+            "cms-headless",
+            "ssr-bff"
+          ],
+          "why": "Un CMS de contenu partagé et des fronts indépendants facilitent l'omnicanal, sous réserve d'une gouvernance des contrats."
+        }
+      ]
+    },
+    "channel": {
+      "title": "Quel canal utilisera l'application ?",
+      "help": "Une SPA web et une application native iOS/Android ne partagent pas forcément les mêmes contraintes d'identité.",
+      "choices": [
+        {
+          "label": "Web ou PWA",
+          "detail": "Application accessible dans le navigateur",
+          "to": "web-purpose"
+        },
+        {
+          "label": "Mobile natif uniquement",
+          "detail": "Application iOS/Android installée sur le téléphone",
+          "to": "mobile-api"
+        },
+        {
+          "label": "Web et mobile natif",
+          "detail": "Deux parcours de consommation à adapter",
+          "to": "multi-channel"
+        }
+      ]
+    },
+    "web-purpose": {
+      "title": "Quel est le besoin dominant du front web ?",
+      "help": "Le rendu des pages, l'intégration API et le découpage en équipes sont des décisions indépendantes.",
+      "choices": [
+        {
+          "label": "Des pages qui doivent être pré-rendues",
+          "detail": "Référencement et affichage du premier contenu",
+          "to": "web-render"
+        },
+        {
+          "label": "Une SPA interactive qui échange avec des APIs",
+          "detail": "Tableaux de bord, formulaires, transactions",
+          "to": "web-aggregation"
+        },
+        {
+          "label": "Des équipes distinctes livrant leurs domaines",
+          "detail": "Chaque équipe maîtrise ses composants et son rythme",
+          "patterns": [
+            "microfront-bff",
+            "bff-rest"
+          ],
+          "why": "Les micro-frontends conviennent à des frontières produit et équipes suffisamment autonomes."
+        },
+        {
+          "label": "Un backend exécuté à la demande",
+          "detail": "Peu d'exploitation de serveurs et trafic variable",
+          "to": "serverless-purpose"
+        }
+      ]
+    },
+    "web-render": {
+      "title": "Quand fabriquer le HTML de la page ?",
+      "help": "SSR = rendu lors de la requête ; SSG = HTML généré pendant le build.",
+      "choices": [
+        {
+          "label": "À la publication ou au build (SSG)",
+          "detail": "Site de contenu relativement stable",
+          "patterns": [
+            "ssg-direct",
+            "cms-headless"
+          ],
+          "why": "Un build statique et un CDN peuvent suffire, avec CMS headless pour les contenus éditoriaux."
+        },
+        {
+          "label": "À chaque requête (SSR)",
+          "detail": "Contenu dynamique ou personnalisé",
+          "patterns": [
+            "ssr-bff",
+            "edge-ssr"
+          ],
+          "why": "Le SSR rend l'HTML au serveur ; l'edge est une variante de déploiement à valider selon la latence vers les données."
+        },
+        {
+          "label": "Je veux une interface très interactive (CSR)",
+          "detail": "Le navigateur construit l'essentiel des vues",
+          "to": "web-aggregation"
+        }
+      ]
+    },
+    "web-aggregation": {
+      "title": "Le navigateur doit-il agréger plusieurs services métier ?",
+      "help": "Un BFF dédié apporte de la composition et peut isoler les jetons OAuth du JavaScript.",
+      "choices": [
+        {
+          "label": "Non, une API existante correspond aux écrans",
+          "detail": "Accès direct, faible composition",
+          "to": "web-direct-protocol"
+        },
+        {
+          "label": "Oui, ou je veux une session gérée par un serveur",
+          "detail": "Plusieurs services ou exigences de sécurité",
+          "to": "web-bff-protocol"
+        }
+      ]
+    },
+    "web-direct-protocol": {
+      "title": "Quel contrat API est déjà disponible ?",
+      "help": "GraphQL et REST ne constituent pas à eux seuls une stratégie de BFF.",
+      "choices": [
+        {
+          "label": "REST",
+          "detail": "Ressources et opérations HTTP",
+          "patterns": [
+            "spa-rest-direct",
+            "serverless-direct"
+          ],
+          "why": "Une API REST directe évite un BFF tant que le contrat est adapté ; l'hébergement serverless est possible."
+        },
+        {
+          "label": "GraphQL",
+          "detail": "Le client sélectionne les champs dans un schéma typé",
+          "patterns": [
+            "spa-graphql-direct",
+            "serverless-graphql"
+          ],
+          "why": "GraphQL est un protocole, le graphe peut être commun ou hébergé sur des fonctions."
+        }
+      ]
+    },
+    "web-bff-protocol": {
+      "title": "Quel type de contrat exposer au front ?",
+      "help": "Le BFF porte un contrat dédié aux écrans, pas nécessairement un protocole spécifique.",
+      "choices": [
+        {
+          "label": "REST",
+          "detail": "Endpoints adaptés aux vues",
+          "patterns": [
+            "bff-rest",
+            "serverless-bff-rest"
+          ],
+          "why": "Un BFF REST est souvent un point de départ simple ; des fonctions HTTP peuvent l'héberger."
+        },
+        {
+          "label": "GraphQL",
+          "detail": "Schéma de données d'expérience et requêtes flexibles",
+          "patterns": [
+            "bff-graphql",
+            "serverless-graphql"
+          ],
+          "why": "Un BFF GraphQL apporte la souplesse des champs mais ajoute la gouvernance des résolveurs."
+        },
+        {
+          "label": "Pas encore décidé",
+          "detail": "Comparer les protocoles selon l'organisation",
+          "patterns": [
+            "bff-rest",
+            "bff-graphql"
+          ],
+          "why": "Le besoin de BFF est indépendant du choix du contrat API."
+        }
+      ]
+    },
+    "mobile-api": {
+      "title": "Les APIs existantes répondent-elles aux besoins de l'application native ?",
+      "help": "Le client mobile a ses propres contraintes réseau, stockage et OAuth.",
+      "choices": [
+        {
+          "label": "Oui, accès direct raisonnable",
+          "detail": "Peu de composition, contrat adapté au réseau mobile",
+          "patterns": [
+            "mobile-native-direct"
+          ],
+          "why": "L'application native peut appeler la gateway avec OAuth PKCE, sans BFF dédié."
+        },
+        {
+          "label": "Non, composition ou adaptation nécessaire",
+          "detail": "Payloads compacts, agrégation ou logique de canal",
+          "patterns": [
+            "multi-channel-bff",
+            "serverless-bff-rest"
+          ],
+          "why": "Un backend spécialisé pour le mobile réduit la complexité du client et les appels réseau."
+        }
+      ]
+    },
+    "multi-channel": {
+      "title": "Les canaux ont-ils des parcours très différents ?",
+      "help": "Un BFF web unique n'est pas automatiquement adapté au natif.",
+      "choices": [
+        {
+          "label": "Oui, expériences web et mobile distinctes",
+          "detail": "Deux équipes, écrans et données variés",
+          "patterns": [
+            "multi-channel-bff",
+            "cms-headless"
+          ],
+          "why": "Les BFF par canal optimisent les parcours ; le CMS headless convient à la mutualisation de contenu."
+        },
+        {
+          "label": "Non, quelques ressources communes suffisent",
+          "detail": "Mêmes contrats API réutilisables",
+          "patterns": [
+            "spa-rest-direct",
+            "mobile-native-direct"
+          ],
+          "why": "Un accès direct à une API partagée peut éviter deux BFF, si les contraintes de sécurité le permettent."
+        },
+        {
+          "label": "Majoritairement de la publication de contenu",
+          "detail": "Actualités et médias sur plusieurs canaux",
+          "patterns": [
+            "cms-headless",
+            "multi-channel-bff"
+          ],
+          "why": "Le modèle de contenu headless est central ; un BFF peut compléter les traitements applicatifs."
+        }
+      ]
+    },
+    "serverless-purpose": {
+      "title": "Que souhaites-tu exécuter à la demande ?",
+      "help": "« Serverless » décrit l'exécution, pas la présence ou non d'un BFF.",
+      "choices": [
+        {
+          "label": "Des API HTTP simples",
+          "detail": "Lecture/écriture rapide, petit nombre de services",
+          "patterns": [
+            "serverless-direct",
+            "serverless-bff-rest"
+          ],
+          "why": "La fonction peut exposer directement une API, ou composer des services en BFF si nécessaire."
+        },
+        {
+          "label": "Des requêtes de données GraphQL",
+          "detail": "Schéma de données avec résolveurs",
+          "patterns": [
+            "serverless-graphql",
+            "bff-graphql"
+          ],
+          "why": "L'hébergement de résolveurs en fonctions convient si les limites de coût et N+1 sont maîtrisées."
+        },
+        {
+          "label": "Des tâches longues et asynchrones",
+          "detail": "Ne pas laisser une requête HTTP attendre",
+          "to": "background"
+        },
+        {
+          "label": "Du HTML calculé au plus près de l'utilisateur",
+          "detail": "SSR à l'edge plutôt qu'un serveur central",
+          "patterns": [
+            "edge-ssr",
+            "ssr-bff"
+          ],
+          "why": "L'edge peut réduire la latence locale, sauf si les données sont éloignées."
+        }
+      ]
+    },
+    "background": {
+      "title": "Quelle est la forme du traitement ?",
+      "help": "Pour une tâche longue, on renvoie une référence de suivi plutôt que de maintenir une requête HTTP ouverte.",
+      "choices": [
+        {
+          "label": "Un travail indépendant exécuté après la commande",
+          "detail": "File, worker, résultat différé",
+          "patterns": [
+            "serverless-async",
+            "serverless-direct"
+          ],
+          "why": "La file découple l'entrée HTTP et le traitement ; une fonction directe reste adaptée aux tâches courtes."
+        },
+        {
+          "label": "Un processus métier en plusieurs étapes",
+          "detail": "Étapes, retries, temporisations, compensations",
+          "patterns": [
+            "serverless-workflow",
+            "serverless-async"
+          ],
+          "why": "L'orchestrateur rend le cycle de vie explicite ; une file peut suffire pour un seul traitement."
+        },
+        {
+          "label": "Des endpoints courts uniquement",
+          "detail": "Réponse rapide à chaque requête",
+          "patterns": [
+            "serverless-direct",
+            "serverless-bff-rest"
+          ],
+          "why": "Des functions HTTP conviennent à des actions bornées, éventuellement agrégées par un BFF."
+        }
+      ]
+    }
+  }
+}
