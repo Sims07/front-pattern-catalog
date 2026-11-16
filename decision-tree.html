@@ -81,6 +81,71 @@ footer{border-top:1px solid var(--line);margin-top:60px;padding:22px 0;color:var
 @media(max-width:880px){.decision-layout{grid-template-columns:1fr}.journey{position:static;max-height:none}.journey ol{display:flex;flex-wrap:wrap;gap:11px;border:0;padding:0}.journey li{padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#1d3045}.journey li:before{display:none}.journey .new-start{width:auto}.overview-branches{grid-template-columns:1fr}}
 @media(max-width:580px){.wrap{width:calc(100% - 26px)}.head{gap:8px}.head nav{gap:8px}.head nav a{font-size:11px}.brand{font-size:12px}.hero{padding:35px 0 25px}.hero p{font-size:14px}.tree-panel{padding:17px}.branches{grid-template-columns:1fr}.branch{min-height:110px}.result-grid{grid-template-columns:1fr}.overview-column{padding:13px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* Carte intégrale et interactive : chaque branche reste visible, même après un choix */
+.tree-intro{border:1px solid #3b586d;background:#142c3c;border-radius:14px;padding:14px 18px;margin-bottom:19px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.tree-intro p{font-size:13px;margin:0;color:#d1e6ed;max-width:720px}
+.tree-intro .jump-links{display:flex;flex-wrap:wrap;gap:8px}
+.tree-intro a{border-radius:30px;background:#203e50;padding:6px 10px;color:#b9f7f1;text-decoration:none;font-size:12px}
+.full-tree-layout{display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:18px;align-items:start}
+.tree-map{min-width:0;border:1px solid #3d536f;border-radius:17px;padding:22px;background:linear-gradient(155deg,#142239,#101928)}
+.tree-map h2{font-size:22px;letter-spacing:-.035em;margin:0 0 6px}
+.tree-map-head{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:12px;border-bottom:1px solid #334660;padding-bottom:14px;margin-bottom:15px}
+.tree-map-head p{font-size:12px;color:var(--muted);margin:0}
+.tree-help{font-size:12px;color:#a3bad1}
+.tree-question{border-left:2px solid #3b6075;padding:3px 0 0 18px;position:relative;min-width:0}
+.tree-question::before{content:"";position:absolute;width:12px;height:2px;left:-1px;top:19px;background:#3b6075}
+.tree-question.root{border-left:0;padding-left:0}
+.tree-question.root::before{display:none}
+.tree-question-head{background:#21334c;border:1px solid #49637e;border-radius:10px;padding:9px 12px;margin:0 0 11px}
+.tree-question-head strong{font-size:13px;color:#e4f7ff;display:block}
+.tree-question-head small{font-size:11px;color:#aebfd3;display:block;margin-top:2px}
+.tree-question.is-current>.tree-question-head{border-color:#81e5dd;box-shadow:0 0 0 1px #438b8a;background:#1c434b}
+.tree-branches{padding-left:13px}
+.tree-branch{position:relative;border-left:2px solid #35495f;padding:0 0 11px 19px}
+.tree-branch::before{content:"";position:absolute;left:0;top:17px;width:16px;height:2px;background:#35495f}
+.tree-branch:last-child{border-left-color:transparent;padding-bottom:3px}
+.tree-choice{display:block;width:100%;text-align:left;background:#182a3f;border:1px solid #435976;border-radius:10px;padding:10px 12px;color:var(--text);font:inherit;min-height:58px}
+.tree-choice strong{font-size:12px;display:block;font-weight:750}
+.tree-choice span{display:block;font-size:11px;color:var(--muted);line-height:1.4;margin-top:3px}
+.tree-choice:hover{background:#244458;border-color:#77cbd0}
+.tree-choice.is-chosen{background:#174a4c;border-color:#80eee3;box-shadow:0 0 0 1px #80eee366}
+.tree-choice.is-chosen strong{color:#c6fff9}
+.tree-choice .choice-indicator{font-size:10px;color:#92f4e5;display:none;font-weight:800}
+.tree-choice.is-chosen .choice-indicator{display:inline}
+.tree-descendant{padding:13px 0 2px 10px}
+.tree-leaf{border-left:3px solid #718da5;background:#111e30;border-radius:5px 10px 10px 5px;padding:10px 12px}
+.tree-leaf.is-chosen{border-left-color:#78efcf;background:#18382f}
+.tree-leaf strong{display:block;color:#d9f4f1;font-size:11px;letter-spacing:.03em;margin-bottom:6px}
+.tree-leaf ul{list-style:none;display:flex;flex-wrap:wrap;gap:5px;padding:0;margin:0}
+.tree-leaf li{margin:0;max-width:100%}
+.tree-leaf a{display:inline-block;border:1px solid #3e566e;border-radius:7px;padding:4px 7px;color:#dcecff;background:#203147;text-decoration:none;font-size:11px}
+.tree-leaf a:hover{border-color:#80e2da;color:#adf7f1}
+.tree-root-head{margin:0 0 14px;background:#1c4553;border:1px solid #78bdbf;padding:14px;border-radius:12px}
+.tree-root-head strong{font-size:16px;display:block;color:#e7ffff}
+.tree-root-head small{font-size:12px;color:#b9d9e3}
+.tree-side{position:sticky;top:91px;background:#172439;border:1px solid #42617b;border-radius:15px;padding:17px;max-height:calc(100vh - 115px);overflow-y:auto}
+.tree-side h2{font-size:17px;margin:0 0 4px}
+.tree-side .aside-intro{margin:0 0 13px;color:var(--muted);font-size:12px}
+.path-list{list-style:none;margin:0 0 14px;padding:0}
+.path-list li{border-left:2px solid var(--teal);padding:3px 0 12px 12px;font-size:12px}
+.path-list li strong{font-size:11px;display:block;color:#c2d1e5}
+.path-list li button{background:transparent;border:0;color:#b6eee7;padding:3px 0;text-align:left;font-size:12px;font-weight:650}
+.path-list li button:hover{text-decoration:underline}
+.path-empty{font-size:12px;color:var(--muted)}
+.choices-summary{padding:11px 12px;border:1px solid #39576e;background:#10253a;border-radius:10px;margin:12px 0}
+.choices-summary strong{display:block;font-size:12px;color:#c6f5ed}
+.choices-summary p{font-size:12px;color:#b2c6d6;margin:5px 0}
+.result-links{list-style:none;margin:10px 0;padding:0;display:grid;gap:8px}
+.result-links a{display:block;border:1px solid #3e6780;padding:9px 11px;border-radius:9px;text-decoration:none;color:#c8f5f3;background:#173541;font-size:12px}
+.result-links a:hover{background:#285364}
+.result-compare{display:block;margin-top:12px;width:100%;font-size:12px}
+.tree-side .btn{width:100%;margin-top:8px}
+.tree-side .mini-hint{font-size:11px;color:#a4bfd5;margin:8px 0}
+.full-map-footer{font-size:12px;color:var(--muted);padding:11px 0}
+@media(max-width:950px){.full-tree-layout{grid-template-columns:1fr}.tree-side{position:static;max-height:none;order:-1}.tree-map{padding:15px}}
+@media(max-width:620px){.tree-branches{padding-left:4px}.tree-question{padding-left:9px}.tree-branch{padding-left:11px}.tree-branch::before{width:9px}.tree-descendant{padding-left:3px}.tree-question-head{padding:9px}.tree-choice{padding:9px}.tree-map{padding:10px}}
+
 </style>
 </head>
 <body>
@@ -92,31 +157,29 @@ footer{border-top:1px solid var(--line);margin-top:60px;padding:22px 0;color:var
 <section class="hero">
 <span class="eyebrow">Aide au choix · Architecture applicative</span>
 <h1>Ton architecture,<br><em>un choix à la fois.</em></h1>
-<p>Parcours un arbre de décision : chaque réponse ouvre une nouvelle branche. À la fin, retrouve les architectures à étudier et ouvre directement leurs fiches ou leur comparaison.</p>
-<span class="pill">Un guide indicatif, pas une décision imposée</span>
+<p>Explore toutes les branches sur la même page. Clique pour tracer ton parcours : les questions déjà validées restent visibles et tu peux changer d’avis à chaque embranchement.</p>
+<span class="pill">Vue intégrale · chemin interactif conservé</span>
 </section>
-<div class="decision-layout">
-<aside class="journey" aria-labelledby="journeyTitle">
-<h2 id="journeyTitle">Chemin parcouru</h2><p>Reviens sur une réponse pour explorer une autre branche.</p>
-<ol id="journeyList"><li class="journey-empty">Commence par choisir une branche.</li></ol>
-<button type="button" class="btn ghost new-start" id="startOver">↻ Recommencer</button>
-</aside>
-<section class="tree-panel" id="treePanel" aria-label="Arbre de décision interactif" aria-live="polite">
-<div class="question"><h2>Chargement de l’arbre de décision…</h2></div>
-</section>
+
+<div class="tree-intro" aria-label="Navigation dans l’arbre">
+  <p><strong>Arbre complet :</strong> toutes les questions et toutes les issues sont visibles dès le départ. Clique sur une réponse pour colorer ton chemin, sans masquer les autres branches.</p>
+  <nav class="jump-links" aria-label="Accès aux grandes branches">
+    <a href="#tree-cms">Contenu / CMS</a><a href="#tree-app">Applications web / mobile</a><a href="#tree-async">Traitements & serverless</a>
+  </nav>
 </div>
-<section class="secondary" aria-labelledby="overviewTitle">
-<span class="eyebrow">Vue d'ensemble · Les grandes branches</span>
-<h2 id="overviewTitle">Comment l'arbre est organisé</h2>
-<p>Le point de départ est le produit et son canal, pas une technologie. Les branches suivantes précisent les contraintes de rendu, de données et d'exploitation.</p>
-<div class="overview-root">Quel est ton besoin produit ?</div><div class="overview-stem"></div>
-<div class="overview-branches">
-<div class="overview-column"><h3>Contenu éditorial</h3><div class="overview-item">Édition et présentation ensemble ?</div><div class="overview-arrow">↓</div><div class="overview-item end">CMS traditionnel</div><div class="overview-item end">CMS headless + front séparé</div></div>
-<div class="overview-column"><h3>Application web / mobile</h3><div class="overview-item">Canal → rendu → agrégation des APIs</div><div class="overview-arrow">↓</div><div class="overview-item end">SPA directe / BFF REST ou GraphQL</div><div class="overview-item end">SSR / SSG / Edge / BFF mobile</div></div>
-<div class="overview-column"><h3>Traitement à la demande</h3><div class="overview-item">Durée, asynchronisme, étapes ?</div><div class="overview-arrow">↓</div><div class="overview-item end">Functions HTTP / BFF serverless</div><div class="overview-item end">Files de messages / workflow</div></div>
+<div class="full-tree-layout">
+ <section class="tree-map" aria-label="Arbre de décision complet" id="fullTree">
+  <div class="tree-map-head"><div><h2>Toutes les branches</h2><p>Les réponses choisies restent surlignées. Tu peux modifier une branche directement.</p></div><span class="pill" id="branchCount">Arbre complet</span></div>
+  <div id="treePanel" aria-live="polite"><p>Chargement de l’arbre de décision…</p></div>
+  <p class="full-map-footer">Les architectures finales peuvent être complémentaires. Chaque fiche s’ouvre dans sa propre page, sans fenêtre superposée.</p>
+ </section>
+ <aside class="tree-side" id="pathPanel" aria-labelledby="journeyTitle">
+  <h2 id="journeyTitle">Mon chemin</h2><p class="aside-intro">Le parcours reste visible ici et dans l’arbre. Clique sur une réponse antérieure pour la modifier.</p>
+  <ol class="path-list" id="journeyList"><li class="path-empty">Choisis une réponse dans l’arbre pour commencer.</li></ol>
+  <div id="decisionResult" aria-live="polite"><p class="path-empty">Les propositions d’architecture apparaîtront ici.</p></div>
+  <button type="button" class="btn ghost" id="startOver">Effacer mes choix</button>
+ </aside>
 </div>
-<p class="note">Les 17 architectures du catalogue sont des possibilités, pas des étapes à cumuler. Un CMS headless peut lui-même être servi par un front SSG/SSR et un BFF.</p>
-</section>
 </main>
 <footer><div class="wrap">Front Pattern Catalog · Arbre de décision pédagogique · Aucune information transmise à un serveur</div></footer>
 <script src="./decision-tree.js"></script>
