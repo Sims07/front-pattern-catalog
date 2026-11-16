@@ -1,7 +1,7 @@
 {
-  "version": 2,
-  "updated": "2026-11-13",
-  "description": "Catalogue pédagogique d'architectures de front web et mobile, BFF REST/GraphQL et déploiements serverless : schémas multi-briques et flux verticaux détaillés.",
+  "version": 3,
+  "updated": "2026-11-16",
+  "description": "Catalogue pédagogique de patterns frontend et de gestion de contenus : web, mobile, BFF, serverless, CMS traditionnel et CMS headless.",
   "sources": [
     {
       "id": "oauth",
@@ -47,6 +47,21 @@
       "id": "lambda",
       "title": "AWS — Designing Lambda applications (queue, bus, orchestration)",
       "url": "https://docs.aws.amazon.com/lambda/latest/dg/concepts-application-design.html"
+    },
+    {
+      "id": "drupal-decoupled",
+      "title": "Drupal — Decoupled Drupal (CMS headless / API de contenu)",
+      "url": "https://www.drupal.org/docs/develop/decoupled-drupal"
+    },
+    {
+      "id": "drupal-jsonapi",
+      "title": "Drupal — Getting started with JSON:API and REST",
+      "url": "https://www.drupal.org/docs/develop/decoupled-drupal/getting-started-with-json-api-and-rest"
+    },
+    {
+      "id": "wordpress-rest",
+      "title": "WordPress — REST API developer handbook",
+      "url": "https://developer.wordpress.org/plugins/rest-api/"
     }
   ],
   "patterns": [
@@ -3301,6 +3316,490 @@
         "transverse": [
           "Workflow durable, timeouts, retries et compensations",
           "Retour au client par API de statut et/ou notification"
+        ]
+      }
+    },
+    {
+      "tags": [
+        "cms",
+        "rendering"
+      ],
+      "complexity": "Modérée",
+      "audience": [
+        "web"
+      ],
+      "refs": [
+        "drupal-decoupled",
+        "wordpress-rest"
+      ],
+      "id": "cms-coupled",
+      "title": "CMS traditionnel — site intégré",
+      "subtitle": "CMS couplé · contenu et rendu ensemble",
+      "rendering": "HTML rendu par CMS",
+      "hosting": "CMS hébergé + CDN",
+      "auth": "Comptes éditeurs / sessions du CMS",
+      "summary": "Le CMS gère l'édition des contenus, les modèles de pages et le rendu HTML dans une même plateforme, souvent derrière un CDN.",
+      "simple": "Le CMS possède à la fois le contenu et l'affichage : les rédacteurs publient une page, et le CMS la génère pour les visiteurs.",
+      "problem": "Publier un site éditorial sans devoir développer et maintenir un front entièrement indépendant du CMS.",
+      "when": "Site vitrine, portail éditorial ou intranet où les composants et gabarits du CMS répondent déjà aux besoins.",
+      "benefits": [
+        "Workflow de publication et aperçu généralement intégrés.",
+        "Un seul ensemble à administrer pour les pages et leur contenu.",
+        "Fonctionnalités éditoriales, thèmes et extensions disponibles selon le CMS."
+      ],
+      "tradeoffs": [
+        "Rendu, plugins et modèle de contenu restent liés à la plateforme CMS.",
+        "Réutiliser le même contenu sur mobile et d'autres canaux peut exiger des APIs supplémentaires.",
+        "Maintenance des plugins, mises à jour de sécurité et cache HTML sensibles."
+      ],
+      "security": "Séparer visiteurs et administrateurs, limiter les plugins et les droits éditeurs, protéger l'administration (MFA), valider uploads et contrôler les pages mises en cache.",
+      "operations": "Surveiller performance du rendu serveur, taux de cache CDN, sécurité des plugins, disponibilité de l'administration et réussite des publications.",
+      "diagram": [
+        [
+          "Navigateur web",
+          "page HTML",
+          "client"
+        ],
+        [
+          "CDN / reverse proxy",
+          "cache HTML",
+          "api"
+        ],
+        [
+          "CMS couplé",
+          "templates + contenu",
+          "bff"
+        ],
+        [
+          "Données et médias",
+          "stockage",
+          "data"
+        ]
+      ],
+      "audienceDetail": "Principalement un site web ; une application mobile native n'affiche pas directement le HTML du CMS comme une SPA et peut nécessiter une API séparée.",
+      "mobileNote": "Pour du mobile natif, évaluer une API de contenu ou une migration headless. La version mobile web reste servie par le site CMS.",
+      "preview": [
+        "Visiteur / Éditeur",
+        "CDN + Admin",
+        "CMS / templates",
+        "Contenus + médias",
+        "Base de données"
+      ],
+      "steps": [
+        "L'éditeur compose une page dans l'administration du CMS et déclenche la publication.",
+        "Le CMS enregistre les contenus et les références aux médias.",
+        "Le visiteur demande la page via le CDN ou le reverse proxy.",
+        "Si le HTML n'est pas en cache, le CMS applique ses thèmes et gabarits et construit la page.",
+        "Le HTML est envoyé au navigateur, avec invalidation du cache lors des publications."
+      ],
+      "implementation": [
+        "Séparer le chemin d'administration des pages publiques et gérer MFA, rôles et sauvegardes.",
+        "Organiser modèles de pages, thèmes et plugins selon le cycle de versionnement.",
+        "Définir la politique de cache CDN et l'invalidation lors de la publication.",
+        "Mesurer les performances du serveur et les risques liés aux extensions."
+      ],
+      "example": "Site institutionnel de présentation, actualités et publication de dossiers éditoriaux.",
+      "architecture": {
+        "stages": [
+          {
+            "label": "Utilisateurs",
+            "nodes": [
+              {
+                "id": "web",
+                "name": "Visiteur web",
+                "detail": "navigation et HTML",
+                "kind": "client"
+              },
+              {
+                "id": "editor",
+                "name": "Éditeur",
+                "detail": "workflow de publication",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Entrées",
+            "nodes": [
+              {
+                "id": "cdn",
+                "name": "CDN / cache HTML",
+                "detail": "diffusion des pages",
+                "kind": "cdn"
+              },
+              {
+                "id": "admin",
+                "name": "Administration CMS",
+                "detail": "édition / authentification",
+                "kind": "security"
+              }
+            ]
+          },
+          {
+            "label": "CMS intégré",
+            "nodes": [
+              {
+                "id": "render",
+                "name": "Moteur de rendu CMS",
+                "detail": "HTML côté serveur",
+                "kind": "bff"
+              },
+              {
+                "id": "templates",
+                "name": "Thèmes et gabarits",
+                "detail": "mise en page",
+                "kind": "service"
+              },
+              {
+                "id": "content",
+                "name": "Service de contenu",
+                "detail": "pages / taxonomies",
+                "kind": "service"
+              }
+            ]
+          },
+          {
+            "label": "Contenus et médias",
+            "nodes": [
+              {
+                "id": "media",
+                "name": "Bibliothèque médias",
+                "detail": "images / documents",
+                "kind": "service"
+              }
+            ]
+          },
+          {
+            "label": "Persistance",
+            "nodes": [
+              {
+                "id": "db",
+                "name": "Base de contenus",
+                "detail": "pages et métadonnées",
+                "kind": "data"
+              },
+              {
+                "id": "blob",
+                "name": "Stockage médias",
+                "detail": "fichiers publiés",
+                "kind": "data"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "web",
+            "to": "cdn",
+            "label": "HTTPS / HTML",
+            "type": "asset"
+          },
+          {
+            "from": "cdn",
+            "to": "render",
+            "label": "HTML si cache miss",
+            "type": "api"
+          },
+          {
+            "from": "editor",
+            "to": "admin",
+            "label": "login / édition",
+            "type": "auth"
+          },
+          {
+            "from": "admin",
+            "to": "content",
+            "label": "publier",
+            "type": "api"
+          },
+          {
+            "from": "render",
+            "to": "templates",
+            "label": "rendu HTML",
+            "type": "api"
+          },
+          {
+            "from": "render",
+            "to": "content",
+            "label": "charger contenus",
+            "type": "api"
+          },
+          {
+            "from": "content",
+            "to": "db",
+            "label": "lecture / écriture",
+            "type": "api"
+          },
+          {
+            "from": "render",
+            "to": "media",
+            "label": "médias",
+            "type": "api"
+          },
+          {
+            "from": "media",
+            "to": "blob",
+            "label": "fichiers",
+            "type": "api"
+          }
+        ],
+        "transverse": [
+          "Publication et invalidation du cache CDN",
+          "MFA éditeurs, mises à jour du CMS et des extensions",
+          "Un CMS monolithique reste une architecture valable si le besoin le justifie"
+        ]
+      }
+    },
+    {
+      "tags": [
+        "cms",
+        "rendering",
+        "direct"
+      ],
+      "complexity": "Élevée",
+      "audience": [
+        "web",
+        "mobile"
+      ],
+      "refs": [
+        "drupal-decoupled",
+        "drupal-jsonapi",
+        "wordpress-rest",
+        "next",
+        "oauth"
+      ],
+      "id": "cms-headless",
+      "title": "CMS headless — front découplé",
+      "subtitle": "CMS découplé · expérience multi-canale",
+      "rendering": "SSR / SSG / CSR",
+      "hosting": "CMS + front séparé + CDN",
+      "auth": "Rôles éditeurs CMS + identité des clients",
+      "summary": "Le CMS pilote le contenu et la publication, tandis qu'un frontend indépendant construit les écrans web et éventuellement mobile à partir d'une API de contenu.",
+      "simple": "Le CMS ne décide plus de l'apparence du site : il expose des contenus via API, et chaque application web ou mobile les affiche à sa façon.",
+      "problem": "Le même contenu doit alimenter plusieurs expériences, ou l'interface doit évoluer indépendamment du CMS.",
+      "when": "Applications web et mobile, design sur mesure, site fortement orienté composants ou plusieurs canaux de publication.",
+      "benefits": [
+        "Une source de contenu éditorial réutilisable sur plusieurs canaux.",
+        "Technologies frontend choisies selon les besoins (SSR, SSG, CSR).",
+        "Cadence de déploiement du front indépendante du CMS."
+      ],
+      "tradeoffs": [
+        "Deux stacks à opérer et des contrats de contenu à gouverner.",
+        "Aperçu, menus, routes, SEO, redirections et invalidation à reconstruire ou intégrer.",
+        "Qualité de cache, droits sur les contenus et disponibilité des APIs à surveiller."
+      ],
+      "security": "Protéger les API privées et le mode aperçu ; conserver les clés CMS à privilèges élevés sur le serveur de rendu/BFF ; autoriser par contenu et protéger les webhooks de publication.",
+      "operations": "Observer cache CDN, revalidation, disponibilité API CMS, temps de rendu SSR, échecs des webhooks et écarts entre prévisualisation et production.",
+      "diagram": [
+        [
+          "Web / mobile",
+          "canaux",
+          "client"
+        ],
+        [
+          "Front indépendant",
+          "SSR / SSG / SPA",
+          "bff"
+        ],
+        [
+          "API contenu CMS",
+          "REST / GraphQL",
+          "api"
+        ],
+        [
+          "CMS éditorial",
+          "publier / aperçu",
+          "service"
+        ],
+        [
+          "Données et médias",
+          "stockage",
+          "data"
+        ]
+      ],
+      "audienceDetail": "Web : rendu SSR/SSG/CSR ; mobile natif : consommation directe de l'API de contenu ou via BFF dédié selon sécurité et contrats.",
+      "mobileNote": "Un client natif ne charge pas le HTML/JS du CDN web ; il demande les contenus par API avec une identité et des stratégies hors ligne adaptées.",
+      "preview": [
+        "Visiteurs web/mobile",
+        "CDN + SSR",
+        "API contenus",
+        "CMS éditeurs",
+        "Données & médias"
+      ],
+      "steps": [
+        "Les rédacteurs modélisent et publient le contenu dans le backoffice CMS.",
+        "Le CMS met le contenu à disposition via REST, JSON:API ou GraphQL.",
+        "Le site web reçoit son HTML pré-rendu (SSG), rendu au serveur (SSR) ou construit au navigateur (CSR).",
+        "L'application mobile peut utiliser les mêmes données via son client API adapté.",
+        "Un webhook de publication déclenche revalidation/rebuild ou purge des caches pour éviter les contenus périmés."
+      ],
+      "implementation": [
+        "Définir les modèles de contenus et les contrats API sans exposer les secrets éditeurs.",
+        "Choisir par route entre SSR, SSG et CSR, puis définir la stratégie cache/revalidation.",
+        "Assurer prévisualisation sécurisée, gestion des URLs, menus, redirections et SEO.",
+        "Définir un webhook authentifié de publication et tester les échecs/reprises."
+      ],
+      "example": "Portail éditorial multicanal alimentant un site Next/Nuxt et une application mobile native.",
+      "architecture": {
+        "stages": [
+          {
+            "label": "Canaux et édition",
+            "nodes": [
+              {
+                "id": "web",
+                "name": "Visiteur web",
+                "detail": "pages SSR/SSG/CSR",
+                "kind": "client"
+              },
+              {
+                "id": "mobile",
+                "name": "Application mobile",
+                "detail": "contenu natif",
+                "kind": "client"
+              },
+              {
+                "id": "editor",
+                "name": "Éditeur CMS",
+                "detail": "publication",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Diffusion web",
+            "nodes": [
+              {
+                "id": "cdn",
+                "name": "CDN / contenu statique",
+                "detail": "HTML/assets web",
+                "kind": "cdn"
+              },
+              {
+                "id": "runtime",
+                "name": "Frontend SSR / build SSG",
+                "detail": "rendu et revalidation",
+                "kind": "bff"
+              }
+            ]
+          },
+          {
+            "label": "CMS et API",
+            "nodes": [
+              {
+                "id": "api",
+                "name": "API de contenu",
+                "detail": "REST / JSON:API / GraphQL",
+                "kind": "gateway"
+              },
+              {
+                "id": "admin",
+                "name": "Backoffice CMS",
+                "detail": "workflow / aperçu",
+                "kind": "security"
+              }
+            ]
+          },
+          {
+            "label": "Événements de publication",
+            "nodes": [
+              {
+                "id": "hook",
+                "name": "Webhook de publication",
+                "detail": "purge / revalidation",
+                "kind": "event"
+              }
+            ]
+          },
+          {
+            "label": "Stockages",
+            "nodes": [
+              {
+                "id": "db",
+                "name": "Base de contenus",
+                "detail": "versions et modèles",
+                "kind": "data"
+              },
+              {
+                "id": "media",
+                "name": "Stockage des médias",
+                "detail": "images / documents",
+                "kind": "data"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "web",
+            "to": "cdn",
+            "label": "HTML / JS",
+            "type": "asset"
+          },
+          {
+            "from": "web",
+            "to": "runtime",
+            "label": "SSR si nécessaire",
+            "type": "api"
+          },
+          {
+            "from": "runtime",
+            "to": "api",
+            "label": "REST / GraphQL",
+            "type": "api"
+          },
+          {
+            "from": "mobile",
+            "to": "api",
+            "label": "API mobile",
+            "type": "api"
+          },
+          {
+            "from": "editor",
+            "to": "admin",
+            "label": "publier",
+            "type": "auth"
+          },
+          {
+            "from": "admin",
+            "to": "db",
+            "label": "contenu",
+            "type": "api"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "label": "lecture",
+            "type": "api"
+          },
+          {
+            "from": "api",
+            "to": "media",
+            "label": "URLs médias",
+            "type": "api"
+          },
+          {
+            "from": "admin",
+            "to": "hook",
+            "label": "publier",
+            "type": "async"
+          },
+          {
+            "from": "hook",
+            "to": "runtime",
+            "label": "revalider",
+            "type": "async"
+          },
+          {
+            "from": "hook",
+            "to": "cdn",
+            "label": "purger cache",
+            "type": "async"
+          }
+        ],
+        "transverse": [
+          "CMS et frontend ont des cycles de vie séparés",
+          "Sécurité des contenus privés, tokens de preview et webhooks",
+          "Le headless peut utiliser REST ou GraphQL avec ou sans BFF"
         ]
       }
     }
