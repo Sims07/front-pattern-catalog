@@ -153,6 +153,28 @@ body.has-compare-tray{padding-bottom:138px}
 .pattern a.detail{display:inline-flex;align-items:center;justify-content:center;border:1px solid #3f7881;border-radius:9px;background:#143642;color:#9af1e8;text-decoration:none;font-size:12px;font-weight:750;padding:9px 11px}
 .pattern a.detail:hover{background:#1c4d59;border-color:#81eee4}
 
+
+/* Aperçu des cartes : teaser fixe, zéro défilement, 3 repères lisibles. */
+.pattern .card-preview{width:100%;min-width:0;margin:21px 0 19px;display:flex;flex-direction:column;gap:10px}
+.pattern .card-preview .preview-label{margin:0;font-size:10px;line-height:1.35;letter-spacing:.025em;color:#9fb1c7}
+.pattern .card-preview-flow{display:grid;grid-template-columns:minmax(0,1fr) 12px minmax(0,1fr) 12px minmax(0,1fr);align-items:stretch;gap:5px;width:100%;min-width:0;overflow:visible}
+.pattern .preview-node{display:flex;justify-content:center;align-items:center;min-width:0;min-height:53px;padding:7px 5px;border:1px solid #646a9f;background:#252f4f;border-radius:9px;text-align:center;font-size:11px;line-height:1.23;font-weight:730;color:#e9e9ff;overflow-wrap:anywhere;hyphens:auto}
+.pattern .preview-node-2{background:#183d49;border-color:#508e9c;color:#c3fbf5}
+.pattern .preview-node-3{background:#27374b;border-color:#667f98;color:#e1eaf6}
+.pattern .preview-arrow{display:flex;align-items:center;justify-content:center;min-width:0;color:#73dbda;font-size:15px;font-weight:800}
+.pattern .card-value{display:flex;align-items:flex-start;gap:7px;background:#142939;border:1px solid #2c5262;border-radius:9px;padding:9px 10px;color:#d6eaf2;font-size:12px;line-height:1.38;min-height:50px}
+.pattern .card-value-marker{flex:none;color:var(--cyan);line-height:1.45;font-size:11px}
+.pattern .summary{min-height:0;margin:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;line-clamp:4;overflow:hidden}
+.pattern .bottom{padding-top:15px}
+@media (max-width:670px){
+ .pattern .card-preview{margin:18px 0}
+ .pattern .preview-node{font-size:11.5px;min-height:50px}
+}
+@media (max-width:370px){
+ .pattern .card-preview-flow{grid-template-columns:minmax(0,1fr) 9px minmax(0,1fr) 9px minmax(0,1fr);gap:3px}
+ .pattern .preview-node{font-size:10px;padding:7px 3px}
+}
+
 </style>
 </head>
 <body>
