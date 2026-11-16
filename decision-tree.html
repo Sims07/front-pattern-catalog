@@ -146,6 +146,47 @@ footer{border-top:1px solid var(--line);margin-top:60px;padding:22px 0;color:var
 @media(max-width:950px){.full-tree-layout{grid-template-columns:1fr}.tree-side{position:static;max-height:none;order:-1}.tree-map{padding:15px}}
 @media(max-width:620px){.tree-branches{padding-left:4px}.tree-question{padding-left:9px}.tree-branch{padding-left:11px}.tree-branch::before{width:9px}.tree-descendant{padding-left:3px}.tree-question-head{padding:9px}.tree-choice{padding:9px}.tree-map{padding:10px}}
 
+/* Arbre descendant : toutes les questions gardent une largeur constante,
+   quelle que soit la profondeur. Aucun décalage horizontal cumulatif. */
+.tree-question,.tree-question.root{width:100%;min-width:0;padding:0;border:0}
+.tree-question::before{display:none}
+.tree-root-head,.tree-question-head{width:100%;max-width:720px;margin:0 auto;text-align:center}
+.tree-question-head{padding:14px 16px;border-color:#58758d;background:#21364b}
+.tree-root-head{padding:17px 16px}
+.tree-step{display:block;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.13em;color:var(--teal);margin-bottom:5px}
+.tree-question-head strong{font-size:14px}
+.tree-branches{position:relative;display:flex;flex-direction:column;gap:20px;padding:25px 0 0;min-width:0}
+.tree-branches::before{content:"";position:absolute;top:0;left:calc(50% - 1px);width:2px;height:20px;background:#6ca7b4}
+.tree-branch{position:relative;display:block;min-width:0;border:0;padding:0}
+.tree-branch::before{display:none}
+.tree-branch + .tree-branch{border-top:1px dashed #41576d;padding-top:18px}
+.tree-option-label{display:block;text-align:center;font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:750;color:#94b4c7;margin:0 0 7px}
+.tree-choice{width:100%;max-width:720px;min-height:0;margin:0 auto;text-align:center;padding:13px 16px;border-color:#516a82}
+.tree-choice strong{font-size:13px}
+.tree-choice span{font-size:12px}
+.tree-descendant{min-width:0;width:100%;padding:0;margin:0}
+.tree-descendant::before{content:"";display:block;width:2px;height:22px;margin:0 auto;background:#647f93}
+.tree-branch.is-on-path > .tree-descendant::before{background:var(--teal);box-shadow:0 0 0 1px #75e9e433}
+.tree-branch.is-on-path > .tree-option-label{color:#a7eee3}
+.tree-leaf{width:100%;max-width:720px;margin:0 auto;text-align:center;border-left:0;border-top:3px solid #718da5;border-radius:10px;padding:13px}
+.tree-leaf.is-chosen{border-left:0;border-top-color:#78efcf}
+.tree-leaf ul{justify-content:center}
+.tree-question.root > .tree-branches{gap:20px}
+.tree-question.root > .tree-branches > .tree-branch{padding:17px 12px;border:1px solid #3d5770;border-radius:14px;background:#17263a}
+.tree-question.root > .tree-branches > .tree-branch + .tree-branch{border-top:1px solid #3d5770}
+.tree-question.root > .tree-branches > .tree-branch:has(> .tree-choice.is-chosen){border-color:#5ca8a7}
+.tree-branch[id],.tree-question{scroll-margin-top:90px}
+@media(max-width:620px){
+  .tree-question,.tree-question.root{padding:0;border:0}
+  .tree-branches{padding:22px 0 0;gap:17px}
+  .tree-branch{padding:0;border:0}
+  .tree-branch + .tree-branch{padding-top:16px}
+  .tree-descendant{padding:0}
+  .tree-question-head,.tree-root-head{padding:11px}
+  .tree-choice{padding:11px}
+  .tree-question.root > .tree-branches > .tree-branch{padding:12px 8px}
+}
+
 </style>
 </head>
 <body>
@@ -162,14 +203,14 @@ footer{border-top:1px solid var(--line);margin-top:60px;padding:22px 0;color:var
 </section>
 
 <div class="tree-intro" aria-label="Navigation dans l’arbre">
-  <p><strong>Arbre complet :</strong> toutes les questions et toutes les issues sont visibles dès le départ. Clique sur une réponse pour colorer ton chemin, sans masquer les autres branches.</p>
+  <p><strong>Arbre vertical :</strong> lis les questions de haut en bas, puis les réponses et leurs suites. Toutes les alternatives restent visibles. Clique sur une réponse pour surligner ton parcours.</p>
   <nav class="jump-links" aria-label="Accès aux grandes branches">
     <button type="button" data-jump-to="tree-cms">Contenu / CMS</button><button type="button" data-jump-to="tree-app">Applications web / mobile</button><button type="button" data-jump-to="tree-async">Traitements & serverless</button>
   </nav>
 </div>
 <div class="full-tree-layout">
  <section class="tree-map" aria-label="Arbre de décision complet" id="fullTree">
-  <div class="tree-map-head"><div><h2>Toutes les branches</h2><p>Les réponses choisies restent surlignées. Tu peux modifier une branche directement.</p></div><span class="pill" id="branchCount">Arbre complet</span></div>
+  <div class="tree-map-head"><div><h2>Arbre de décision vertical</h2><p>Chaque réponse mène vers le bas à une question ou une architecture. Les choix retenus restent surlignés et modifiables.</p></div><span class="pill" id="branchCount">Arbre complet</span></div>
   <div id="treePanel" aria-live="polite"><p>Chargement de l’arbre de décision…</p></div>
   <p class="full-map-footer">Les architectures finales peuvent être complémentaires. Chaque fiche s’ouvre dans sa propre page, sans fenêtre superposée.</p>
  </section>
