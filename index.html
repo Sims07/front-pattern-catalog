@@ -122,19 +122,45 @@ dialog{width:min(1140px,calc(100% - 24px))}
 @media(max-width:900px){.primer-grid{grid-template-columns:1fr}.serverless-grid{grid-template-columns:1fr}}
 @media(max-width:670px){.primer{padding:16px}.flow-details ol,.glossary-grid{grid-template-columns:1fr}.dialog-body{padding:21px 16px}.architecture-figure{padding:9px 8px}.pattern .summary{min-height:unset}.dialog-head{gap:8px}.dialog-head .close{flex:none}.primer-cell{padding:12px}}
 
+
+/* Comparaison accessible sans parcourir toutes les cartes */
+body.has-compare-tray{padding-bottom:138px}
+.compare-tray{position:fixed;z-index:30;bottom:15px;left:50%;transform:translateX(-50%);width:min(1050px,calc(100% - 28px));background:#18273bf5;border:1px solid #54798c;border-radius:17px;box-shadow:0 18px 65px #000b;backdrop-filter:blur(18px);padding:13px 17px;display:flex;align-items:center;gap:15px}
+.compare-tray[hidden]{display:none!important}
+.compare-tray-status{min-width:140px;display:flex;flex-direction:column;gap:3px;line-height:1.25}
+.compare-tray-status strong{color:#eafaff;font-size:14px}
+.compare-tray-status span{color:#b1c6d8;font-size:11px}
+.compare-tray-choices{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0}
+.compare-choice{display:inline-flex;align-items:center;gap:7px;padding:6px 8px 6px 11px;border:1px solid #4a7285;border-radius:9px;font-size:12px;color:#e4f4ff;background:#142b3e;max-width:270px}
+.compare-choice span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.compare-choice button{flex:none;border:0;background:transparent;color:#c2e1ec;font-size:18px;line-height:1;padding:2px 4px;border-radius:5px}
+.compare-choice button:hover{color:#fff;background:#355269}
+.compare-tray-actions{display:flex;align-items:center;gap:8px;flex:none}
+.compare-tray-actions .btn{white-space:nowrap;min-height:43px;justify-content:center}
+.comparison-dialog{width:min(1120px,calc(100% - 28px));max-height:90vh;margin:auto;padding:27px;border:1px solid #55758c;border-radius:19px;background:#111c2d;color:var(--ink);overflow-y:auto;box-shadow:0 35px 120px #000c}
+.comparison-dialog::backdrop{background:#050a15ce;backdrop-filter:blur(6px)}
+.comparison-dialog .comparison-header{display:flex;align-items:start;justify-content:space-between;gap:16px}
+.comparison-dialog h2{margin:0;font-size:26px;letter-spacing:-.035em}
+.comparison-dialog p{color:var(--muted);font-size:13px;margin:6px 0 19px}
+.comparison-dialog .table-scroll{max-width:100%}
+.comparison-dialog th,.comparison-dialog td{min-width:205px}
+.comparison-dialog .compare-actions{position:sticky;bottom:-27px;background:#111c2d;padding:16px 0 2px;border-top:1px solid var(--line);flex-wrap:wrap}
+@media(max-width:850px){.compare-tray{flex-wrap:wrap}.compare-tray-status{min-width:0}.compare-tray-choices{order:3;flex-basis:100%}.compare-tray-actions{margin-left:auto}body.has-compare-tray{padding-bottom:190px}}
+@media(max-width:550px){.compare-tray{bottom:8px;padding:11px 12px;gap:9px}.compare-tray-status{flex:1}.compare-tray-actions{width:100%;justify-content:space-between}.compare-tray-actions .btn.primary{flex:1}.compare-tray-choices{order:2;flex-basis:100%}.compare-choice{max-width:calc(50% - 4px);font-size:11px}.comparison-dialog{padding:17px}.comparison-dialog .compare-actions{bottom:-17px}.comparison-dialog h2{font-size:22px}body.has-compare-tray{padding-bottom:215px}}
+
 </style>
 </head>
 <body>
 <header class="topbar"><div class="wrap topbar-inner">
   <a class="brand" href="./index.html" aria-label="Accueil du catalogue"><span class="mark" aria-hidden="true">⌘</span><span><small>Architecture Solutions</small>Front Pattern Catalog</span></a>
-  <nav class="top-links" aria-label="Navigation"><a href="#catalogue">Catalogue</a><a href="#repères">Repères</a><a href="https://sims07.github.io/tools-portal/">← Portail des outils</a></nav>
+  <nav class="top-links" aria-label="Navigation"><a href="#catalogue">Catalogue</a><a href="#repères">Repères</a><a href="./decision-tree.html">Arbre de décision</a><a href="https://sims07.github.io/tools-portal/">← Portail des outils</a></nav>
 </div></header>
 <section class="hero"><div class="wrap hero-grid">
  <div><span class="eyebrow">Référentiel d'architecture · Frontend & BFF</span>
   <h1>Quel front ?<br><em>Quelle architecture ?</em></h1>
   <p>Du site web à l’application mobile, du BFF REST ou GraphQL aux fonctions serverless : découvre chaque architecture avec des explications simples, puis approfondis ses composants et ses flux.</p>
-  <div class="hero-actions"><a class="btn primary" href="#catalogue">Explorer les patterns ↓</a><a class="btn" href="#repères">Comprendre les choix</a></div>
-  <div class="quick-facts"><div><strong id="totalCount">15</strong><span>Architectures expliquées</span></div><div><strong>2</strong><span>Canaux web et mobile</span></div><div><strong>ADR</strong><span>Export Markdown</span></div></div>
+  <div class="hero-actions"><a class="btn primary" href="#catalogue">Explorer les patterns ↓</a><a class="btn" href="./decision-tree.html">Arbre de décision ↗</a><a class="btn" href="#repères">Comprendre les choix</a></div>
+  <div class="quick-facts"><div><strong id="totalCount">17</strong><span>Architectures expliquées</span></div><div><strong>2</strong><span>Canaux web et mobile</span></div><div><strong>ADR</strong><span>Export Markdown</span></div></div>
  </div>
  <aside class="hero-panel" aria-label="Assistant d'orientation">
   <div class="panel-head"><strong>Quel pattern envisager ?</strong><span>Guide indicatif</span></div>
@@ -172,15 +198,19 @@ dialog{width:min(1140px,calc(100% - 24px))}
   <button class="chip" type="button" data-filter="rendering" aria-pressed="false">SSR / SSG</button>
   <button class="chip" type="button" data-filter="web" aria-pressed="false">Pour le Web</button>
   <button class="chip" type="button" data-filter="mobile" aria-pressed="false">Pour le mobile</button>
+  <button class="chip" type="button" data-filter="cms" aria-pressed="false">CMS & headless</button>
  </div>
  <div class="cards" id="cards" aria-live="polite"></div>
  <p id="empty" class="empty" hidden>Aucun résultat. Modifiez le filtre ou la recherche.</p>
 </section>
-<section class="comparison" id="comparison" hidden aria-labelledby="comparisonTitle">
- <h2 id="comparisonTitle">Comparer les options</h2><p>Deux ou trois patterns côte à côte, pour structurer un arbitrage et copier une ébauche d'ADR.</p>
+<dialog class="comparison-dialog" id="comparison" aria-labelledby="comparisonTitle">
+ <div class="comparison-header">
+  <div><h2 id="comparisonTitle">Comparaison des architectures</h2><p>Arbitrer entre deux ou trois architectures, puis documenter votre décision.</p></div>
+  <button class="close" type="button" id="closeComparison" aria-label="Fermer la comparaison">Fermer ✕</button>
+ </div>
  <div class="table-scroll"><table id="comparisonTable"></table></div>
- <div class="compare-actions"><button class="btn small" type="button" id="clearCompare">Effacer</button><button class="btn primary small" type="button" id="copyCompare">Copier un ADR Markdown</button></div>
-</section>
+ <div class="compare-actions"><button class="btn small" type="button" id="clearCompare">Effacer la sélection</button><button class="btn primary small" type="button" id="copyCompare">Copier l’ADR Markdown</button></div>
+</dialog>
 <section class="guidance" id="repères" aria-labelledby="guideTitle">
  <span class="eyebrow">02 / Principes de décision</span><h2 id="guideTitle">Trois distinctions essentielles</h2>
  <div class="guide-grid">
@@ -194,6 +224,17 @@ dialog{width:min(1140px,calc(100% - 24px))}
 </main>
 <footer><div class="wrap footer-row"><span>Front Pattern Catalog · Architecture Solutions · Static PWA</span><span>Données versionnées dans patterns.json · Rien n'est envoyé à un serveur par ce catalogue</span></div></footer>
 <dialog id="detail" aria-label="Fiche de pattern"><div class="dialog-body" id="detailContent"></div></dialog>
+<aside class="compare-tray" id="compareTray" hidden aria-label="Sélection pour comparaison">
+ <div class="compare-tray-status" role="status" aria-live="polite">
+  <strong id="compareCount">0/3 architecture sélectionnée</strong>
+  <span id="compareHint">Choisis au moins deux architectures.</span>
+ </div>
+ <div class="compare-tray-choices" id="compareChoices" aria-label="Architectures sélectionnées"></div>
+ <div class="compare-tray-actions">
+  <button type="button" class="btn small" id="clearSelection">Effacer</button>
+  <button type="button" class="btn primary" id="launchCompare" disabled>Comparer les architectures</button>
+ </div>
+</aside>
 <div id="notice" role="status" aria-live="polite" hidden></div>
 <script src="./diagrams.js"></script>
 <script>
@@ -269,9 +310,28 @@ function md(p){
  return lines.join("\n")+"\n";
 }
 function renderCompare(){
- var ids=Array.from(selected), sec=document.getElementById("comparison");sec.hidden=ids.length<2;if(ids.length<2)return;
+ var ids=Array.from(selected), modal=document.getElementById("comparison");
+ var tray=document.getElementById("compareTray");
+ tray.hidden=ids.length===0;
+ document.body.classList.toggle("has-compare-tray",ids.length>0);
+ if(ids.length<2&&modal.open)modal.close();
+ document.getElementById("compareCount").textContent=ids.length+"/3 architecture"+(ids.length>1?"s":"")+" sélectionnée"+(ids.length>1?"s":"");
+ document.getElementById("compareHint").textContent=ids.length===1?"Sélectionne encore une architecture.":ids.length===3?"Trois architectures sélectionnées.":"Prêt pour la comparaison.";
+ var launch=document.getElementById("launchCompare");
+ launch.disabled=ids.length<2;
+ launch.textContent=ids.length<2?"Comparer les architectures":"Comparer "+ids.length+" architectures";
+ document.getElementById("compareChoices").innerHTML=ids.map(function(id){
+  var p=find(id);return '<span class="compare-choice"><span title="'+esc(p.title)+'">'+esc(p.title)+'</span><button type="button" data-remove-compare="'+esc(id)+'" aria-label="Retirer '+esc(p.title)+' de la comparaison">×</button></span>';
+ }).join("");
+ if(ids.length<2){document.getElementById("comparisonTable").textContent="";return}
  var chosen=ids.map(find), rows=[["Rendu","rendering"],["Hébergement","hosting"],["Complexité","complexity"],["Identité","auth"],["À privilégier si","when"],["Sécurité","security"],["Exploitation","operations"]];
  document.getElementById("comparisonTable").innerHTML='<thead><tr><th scope="col">Critère</th>'+chosen.map(function(p){return '<th scope="col">'+esc(p.title)+'</th>'}).join("")+'</tr></thead><tbody>'+rows.map(function(r){return '<tr><th scope="row">'+esc(r[0])+'</th>'+chosen.map(function(p){return '<td>'+esc(p[r[1]])+'</td>'}).join("")+'</tr>'}).join("")+'</tbody>';
+}
+function openComparison(){
+ if(selected.size<2)return;
+ var modal=document.getElementById("comparison");
+ renderCompare();
+ if(!modal.open)modal.showModal();
 }
 async function copy(value){
  try{await navigator.clipboard.writeText(value);notify("Markdown copié.");return}catch(e){}
@@ -302,13 +362,31 @@ document.getElementById("suggestOpen").addEventListener("click",function(e){open
 details.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;if(b.hasAttribute("data-close"))dialog.close();if(b.dataset.copy)copy(md(find(b.dataset.copy)));if(b.dataset.toggle){var id=b.dataset.toggle;toggle(id,!selected.has(id));}});
 dialog.addEventListener("click",function(e){if(e.target===dialog)dialog.close()});
 document.getElementById("clearCompare").addEventListener("click",function(){selected.clear();render()});
+document.getElementById("clearSelection").addEventListener("click",function(){selected.clear();render()});
+document.getElementById("launchCompare").addEventListener("click",openComparison);
+document.getElementById("closeComparison").addEventListener("click",function(){document.getElementById("comparison").close()});
+document.getElementById("compareChoices").addEventListener("click",function(e){var b=e.target.closest("[data-remove-compare]");if(b)toggle(b.dataset.removeCompare,false)});
 document.getElementById("copyCompare").addEventListener("click",function(){var ps=Array.from(selected).map(find);if(ps.length<2)return;var lines=["# ADR — Comparaison de patterns frontend","","## Statut","Proposé / à arbitrer","","## Options étudiées"];ps.forEach(function(p){lines.push("### "+p.title,"**À privilégier si :** "+p.when,"**Compromis :** "+p.tradeoffs.join(" ; "),"**Sécurité :** "+p.security,"")});lines.push("## Décision","[À compléter selon contexte, risques, coûts et responsabilités.]","","## Conséquences","[À documenter.]");copy(lines.join("\n"))});
+
+function openFromHash(){
+ var hash=location.hash||"";
+ if(hash.startsWith("#pattern=")){
+  var id=decodeURIComponent(hash.slice(9));if(find(id))openDetail(id);
+ }else if(hash.startsWith("#compare=")){
+  var ids=hash.slice(9).split(",").map(function(v){return decodeURIComponent(v)});
+  selected.clear();
+  ids.filter(function(id){return !!find(id)}).slice(0,3).forEach(function(id){selected.add(id)});
+  render();
+  if(selected.size>=2)openComparison();
+ }
+}
+window.addEventListener("hashchange",openFromHash);
 fetch("./patterns.json",{cache:"no-store"}).then(function(res){if(!res.ok)throw Error("HTTP "+res.status);return res.json()}).then(function(data){
  if(!data||!Array.isArray(data.patterns))throw Error("Format du catalogue invalide");
  patterns=data.patterns;refs=Object.fromEntries(data.sources.map(function(r){return [r.id,r]}));
  document.getElementById("totalCount").textContent=patterns.length;
  document.getElementById("referencesList").innerHTML=data.sources.map(function(r){return '<li><a href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer">'+esc(r.title)+' ↗</a></li>'}).join("");
- render();orient();renderGlossary(data.glossary||[]);
+ render();orient();renderGlossary(data.glossary||[]);openFromHash();
 }).catch(function(err){cards.innerHTML='<p class="empty">Le catalogue est indisponible. Vérifiez le chargement de patterns.json ou réessayez en ligne.</p>';document.getElementById("resultCount").textContent="Chargement impossible";console.error(err)});
 if("serviceWorker" in navigator&&location.protocol!=="file:"){window.addEventListener("load",function(){navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(function(e){console.warn("PWA non activée",e)})})}
 })();
