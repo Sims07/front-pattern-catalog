@@ -22,13 +22,31 @@
     return Object.prototype.hasOwnProperty.call(LABELS, kind) ? kind : 'service';
   }
 
+  // A card is a teaser, not a scaled-down architecture graph.
+  // Three representative landmarks are authored per pattern, while all technical
+  // nodes/links remain visible in the full-page diagram.
   function preview(pattern) {
-    const parts = pattern.preview || pattern.diagram.map(item => item[0]);
-    return '<div class="preview-label">Aperçu du parcours · schéma complet dans la fiche</div>' +
-      '<div class="chain chain-expanded" aria-label="Aperçu : ' + escapeHTML(parts.join(' vers ')) + '">' +
-      parts.map((name, i) =>
-        (i ? '<span class="arr" aria-hidden="true">→</span>' : '') +
-        '<div class="node client-preview">' + escapeHTML(name) + '</div>').join('') +
+    const card = pattern.cardPreview;
+    if (!card || !Array.isArray(card.steps) || card.steps.length !== 3) {
+      throw new Error('Aperçu de carte incomplet pour ' + pattern.id);
+    }
+    const completeCount = pattern.architecture.stages.reduce(
+      (total, stage) => total + stage.nodes.length, 0
+    );
+    const landmarks = card.steps.map((label, i) =>
+      (i ? '<span class="preview-arrow" aria-hidden="true">→</span>' : '') +
+      '<span class="preview-node preview-node-' + (i + 1) + '">' +
+      escapeHTML(label) + '</span>'
+    ).join('');
+    const description = 'Trois repères pour ' + pattern.title + ' : ' +
+      card.steps.join(' vers ') + '. ' + card.value;
+    return '<div class="card-preview">' +
+      '<div class="preview-label">3 repères · ' + completeCount +
+      ' composants expliqués dans la fiche</div>' +
+      '<div class="card-preview-flow" role="img" aria-label="' + escapeHTML(description) +
+      '">' + landmarks + '</div>' +
+      '<div class="card-value"><span class="card-value-marker" aria-hidden="true">✦</span>' +
+      '<span>' + escapeHTML(card.value) + '</span></div>' +
       '</div>';
   }
 
