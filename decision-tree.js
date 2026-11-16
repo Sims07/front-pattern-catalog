@@ -11,7 +11,7 @@
       return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
     });
   }
-  function urlFor(id){return './pattern.html?id='+encodeURIComponent(id);}
+  function urlFor(id,path){return './pattern.html?id='+encodeURIComponent(id)+(path?'&treePath='+encodeURIComponent(path):'');}
   function choiceKey(path){return path.join('.');}
 
   /* Déplier tout le graphe de décisions, y compris les issues non choisies.
@@ -32,7 +32,7 @@
         : '<div class="tree-leaf" data-leaf-path="'+key+'"><strong>Architectures possibles</strong><ul>'+
           choice.patterns.map(function(id){
             var p=patterns.get(id);
-            return '<li><a href="'+esc(urlFor(id))+'" title="Lire la fiche de '+esc(p.title)+'">'+esc(p.title)+' ↗</a></li>';
+            return '<li><a href="'+esc(urlFor(id,key))+'" title="Lire la fiche de '+esc(p.title)+'">'+esc(p.title)+' ↗</a></li>';
           }).join('')+'</ul></div>';
       return '<div class="tree-branch" data-choice-path="'+key+'"'+rootAnchor+'>'+
         '<button class="tree-choice" type="button" data-select-path="'+key+'" aria-pressed="false">'+
@@ -67,7 +67,7 @@
       result.innerHTML='<div class="choices-summary"><strong>Choix atteint · '+ids.length+' architecture'+(ids.length>1?'s':'')+'</strong>'+
         '<p>'+esc(state.outcome.why||'Plusieurs options peuvent convenir. Consulte leurs compromis.')+'</p></div>'+
         '<ul class="result-links">'+ids.map(function(id){
-          return '<li><a href="'+esc(urlFor(id))+'">'+esc(patterns.get(id).title)+' · voir la fiche ↗</a></li>';
+          return '<li><a href="'+esc(urlFor(id,choiceKey(selectedPath)))+'">'+esc(patterns.get(id).title)+' · voir la fiche ↗</a></li>';
         }).join('')+'</ul>'+
         (ids.length>=2?'<a class="btn primary result-compare" href="./index.html#compare='+ids.map(encodeURIComponent).join(',')+'">Comparer ces architectures ↗</a>':'')+
         '<p class="mini-hint">Ces propositions sont des pistes, pas un classement.</p>';
@@ -166,6 +166,12 @@
     }
   });
   document.getElementById('startOver').addEventListener('click',function(){if(tree)setSelection([],false)});
+  document.querySelectorAll('[data-jump-to]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var target=document.getElementById(btn.dataset.jumpTo);
+      if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+  });
   window.addEventListener('hashchange',function(){
     if(!tree)return;
     var match=location.hash.match(/^#path=([0-9.]+)$/);
