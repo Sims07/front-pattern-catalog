@@ -1,7 +1,7 @@
 {
-  "version": 1,
+  "version": 2,
   "updated": "2026-11-13",
-  "description": "Catalogue de patterns applicatifs frontend. Choix d'architecture et de déploiement sont deux dimensions indépendantes.",
+  "description": "Catalogue pédagogique d'architectures de front web et mobile, BFF REST/GraphQL et déploiements serverless : schémas multi-briques et flux verticaux détaillés.",
   "sources": [
     {
       "id": "oauth",
@@ -27,6 +27,26 @@
       "id": "next",
       "title": "Next.js — Backend for Frontend",
       "url": "https://nextjs.org/docs/app/guides/backend-for-frontend"
+    },
+    {
+      "id": "mdn-ssr",
+      "title": "MDN — Rendu côté serveur (SSR)",
+      "url": "https://developer.mozilla.org/fr/docs/Glossary/SSR"
+    },
+    {
+      "id": "mdn-csr",
+      "title": "MDN — Rendu côté client (CSR)",
+      "url": "https://developer.mozilla.org/fr/docs/Glossary/CSR"
+    },
+    {
+      "id": "functions",
+      "title": "Microsoft Azure — Flex Consumption Functions, cold start et scaling",
+      "url": "https://learn.microsoft.com/azure/azure-functions/flex-consumption-plan"
+    },
+    {
+      "id": "lambda",
+      "title": "AWS — Designing Lambda applications (queue, bus, orchestration)",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/concepts-application-design.html"
     }
   ],
   "patterns": [
@@ -75,8 +95,143 @@
       ],
       "refs": [
         "oauth",
-        "azure"
-      ]
+        "azure",
+        "mdn-csr"
+      ],
+      "simple": "Le site web est chargé depuis un CDN, puis le navigateur appelle directement les APIs métier : pas de serveur dédié à l'interface.",
+      "audience": [
+        "web"
+      ],
+      "audienceDetail": "Web et PWA. Une application mobile native peut utiliser les mêmes APIs avec son propre client OAuth ; elle n'utilise pas le bundle SPA.",
+      "mobileNote": "Compatible mobile via navigateur/PWA. Pour une app native, prévoir un client OAuth natif et des contrats API adaptés.",
+      "preview": [
+        "Navigateur web",
+        "Gateway API",
+        "API utilisateurs",
+        "API commandes",
+        "Données"
+      ],
+      "steps": [
+        "Le CDN livre HTML, CSS et JavaScript au navigateur.",
+        "Le navigateur obtient éventuellement un jeton avec Authorization Code + PKCE.",
+        "La SPA demande directement les ressources REST via HTTPS à la gateway.",
+        "Chaque API vérifie les droits puis consulte ses ressources.",
+        "Le navigateur compose les réponses pour afficher l'écran."
+      ],
+      "implementation": [
+        "CDN pour les ressources statiques ; gateway en option selon l'environnement.",
+        "Contrats REST stables et versionnés, gestion CORS et politiques de cache.",
+        "OAuth pour client public avec PKCE ; aucun secret partagé dans la SPA."
+      ],
+      "example": "Portail de consultation simple utilisant une API de profil et un catalogue partagé.",
+      "architecture": {
+        "stages": [
+          {
+            "label": "Expérience",
+            "nodes": [
+              {
+                "id": "web",
+                "name": "Navigateur SPA",
+                "detail": "Vue / React / PWA",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Diffusion & accès",
+            "nodes": [
+              {
+                "id": "cdn",
+                "name": "CDN statique",
+                "detail": "HTML / JS / CSS",
+                "kind": "cdn"
+              },
+              {
+                "id": "gateway",
+                "name": "API Gateway",
+                "detail": "HTTPS · CORS · quotas",
+                "kind": "gateway"
+              }
+            ]
+          },
+          {
+            "label": "APIs métier",
+            "nodes": [
+              {
+                "id": "users",
+                "name": "API utilisateurs",
+                "detail": "REST / profils",
+                "kind": "service"
+              },
+              {
+                "id": "orders",
+                "name": "API commandes",
+                "detail": "REST / commandes",
+                "kind": "service"
+              }
+            ]
+          },
+          {
+            "label": "Données",
+            "nodes": [
+              {
+                "id": "db1",
+                "name": "Base utilisateurs",
+                "detail": "stockage métier",
+                "kind": "data"
+              },
+              {
+                "id": "db2",
+                "name": "Base commandes",
+                "detail": "stockage métier",
+                "kind": "data"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "web",
+            "to": "cdn",
+            "label": "assets",
+            "type": "asset"
+          },
+          {
+            "from": "web",
+            "to": "gateway",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "gateway",
+            "to": "users",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "gateway",
+            "to": "orders",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "users",
+            "to": "db1",
+            "label": "lecture",
+            "type": "api"
+          },
+          {
+            "from": "orders",
+            "to": "db2",
+            "label": "lecture",
+            "type": "api"
+          }
+        ],
+        "transverse": [
+          "Identité : OAuth public + PKCE",
+          "Observabilité : RUM web, métriques gateway et APIs"
+        ]
+      }
     },
     {
       "id": "spa-graphql-direct",
@@ -124,8 +279,172 @@
       ],
       "refs": [
         "apollo",
-        "oauth"
-      ]
+        "oauth",
+        "mdn-csr"
+      ],
+      "simple": "Le navigateur demande précisément les champs dont il a besoin à une API GraphQL commune. Ce graphe n'est pas nécessairement un BFF.",
+      "audience": [
+        "web"
+      ],
+      "audienceDetail": "Web/PWA directement ; un client mobile natif peut partager le schéma si le contrat et les règles de coût le permettent.",
+      "mobileNote": "Mobile natif possible sur le même endpoint, avec stratégie d'authentification propre aux applications mobiles.",
+      "preview": [
+        "Navigateur web",
+        "Gateway GraphQL",
+        "Résolveurs",
+        "Services A/B",
+        "Données"
+      ],
+      "steps": [
+        "Le CDN sert l'application web.",
+        "La SPA envoie une opération GraphQL avec les champs attendus.",
+        "La gateway GraphQL valide l'identité, la complexité et les autorisations.",
+        "Les résolveurs regroupent les accès aux services ou bases.",
+        "Une réponse structurée revient à l'écran avec les erreurs éventuelles."
+      ],
+      "implementation": [
+        "Schéma et évolution des types gouvernés pour plusieurs consommateurs.",
+        "Limites de profondeur/coût, opérations persistées selon besoin.",
+        "DataLoader/batching et cache des résolveurs pour éviter les appels N+1."
+      ],
+      "example": "Tableau de bord client avec vues personnalisables et données provenant de plusieurs produits.",
+      "architecture": {
+        "stages": [
+          {
+            "label": "Expérience",
+            "nodes": [
+              {
+                "id": "web",
+                "name": "Navigateur SPA",
+                "detail": "GraphQL client",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Accès",
+            "nodes": [
+              {
+                "id": "cdn",
+                "name": "CDN statique",
+                "detail": "livre la SPA",
+                "kind": "cdn"
+              },
+              {
+                "id": "gql",
+                "name": "API GraphQL commune",
+                "detail": "schéma + contrôle de coût",
+                "kind": "gateway"
+              }
+            ]
+          },
+          {
+            "label": "Résolution",
+            "nodes": [
+              {
+                "id": "resolver1",
+                "name": "Résolveur profil",
+                "detail": "batching / auth",
+                "kind": "service"
+              },
+              {
+                "id": "resolver2",
+                "name": "Résolveur commandes",
+                "detail": "pagination",
+                "kind": "service"
+              }
+            ]
+          },
+          {
+            "label": "Services",
+            "nodes": [
+              {
+                "id": "users",
+                "name": "Service clients",
+                "detail": "REST / RPC",
+                "kind": "service"
+              },
+              {
+                "id": "orders",
+                "name": "Service commandes",
+                "detail": "REST / RPC",
+                "kind": "service"
+              }
+            ]
+          },
+          {
+            "label": "Données",
+            "nodes": [
+              {
+                "id": "db1",
+                "name": "Base clients",
+                "detail": "propriété domaine",
+                "kind": "data"
+              },
+              {
+                "id": "db2",
+                "name": "Base commandes",
+                "detail": "propriété domaine",
+                "kind": "data"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "web",
+            "to": "cdn",
+            "label": "assets",
+            "type": "asset"
+          },
+          {
+            "from": "web",
+            "to": "gql",
+            "label": "GraphQL",
+            "type": "api"
+          },
+          {
+            "from": "gql",
+            "to": "resolver1",
+            "label": "résoudre",
+            "type": "api"
+          },
+          {
+            "from": "gql",
+            "to": "resolver2",
+            "label": "résoudre",
+            "type": "api"
+          },
+          {
+            "from": "resolver1",
+            "to": "users",
+            "label": "appel",
+            "type": "api"
+          },
+          {
+            "from": "resolver2",
+            "to": "orders",
+            "label": "appel",
+            "type": "api"
+          },
+          {
+            "from": "users",
+            "to": "db1",
+            "label": "lecture",
+            "type": "api"
+          },
+          {
+            "from": "orders",
+            "to": "db2",
+            "label": "lecture",
+            "type": "api"
+          }
+        ],
+        "transverse": [
+          "OAuth public + PKCE si web protégé",
+          "Complexité des requêtes, N+1, autorisation par objet/champ"
+        ]
+      }
     },
     {
       "id": "bff-rest",
@@ -173,7 +492,170 @@
       "refs": [
         "oauth",
         "azure"
-      ]
+      ],
+      "simple": "Le navigateur parle à un serveur REST conçu pour SON écran. Le BFF conserve les jetons côté serveur et compose plusieurs APIs en une réponse adaptée.",
+      "audience": [
+        "web"
+      ],
+      "audienceDetail": "Optimisé pour navigateur web et PWA, pas automatiquement pour mobile natif.",
+      "mobileNote": "Une application mobile native mérite souvent son propre BFF : payload, cadence et identité différents.",
+      "preview": [
+        "Navigateur web",
+        "Gateway",
+        "BFF REST",
+        "APIs métiers",
+        "DB / Cache"
+      ],
+      "steps": [
+        "Le CDN distribue l'application web au navigateur.",
+        "Le navigateur ouvre une session côté BFF avec un cookie sécurisé.",
+        "Le BFF utilise ses jetons côté serveur pour appeler les APIs autorisées.",
+        "Il compose profils, permissions et commandes dans un contrat REST de page.",
+        "Le navigateur reçoit uniquement les données nécessaires."
+      ],
+      "implementation": [
+        "BFF par expérience web, séparé de la logique métier et de la gateway transverse.",
+        "Session cookie Secure/HttpOnly/SameSite, gestion CSRF et contrôles d'accès.",
+        "Agrégation avec timeouts, stratégie de cache et tracing distribué."
+      ],
+      "example": "Espace assuré où un tableau de bord assemble contrats, remboursements et notifications.",
+      "architecture": {
+        "stages": [
+          {
+            "label": "Expérience",
+            "nodes": [
+              {
+                "id": "web",
+                "name": "Navigateur / PWA",
+                "detail": "session en cookie",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Distribution",
+            "nodes": [
+              {
+                "id": "cdn",
+                "name": "CDN statique",
+                "detail": "bundle du front",
+                "kind": "cdn"
+              },
+              {
+                "id": "gateway",
+                "name": "Gateway / WAF",
+                "detail": "routage API",
+                "kind": "gateway"
+              }
+            ]
+          },
+          {
+            "label": "Couche d'expérience",
+            "nodes": [
+              {
+                "id": "bff",
+                "name": "BFF REST web",
+                "detail": "sessions + agrégation",
+                "kind": "bff"
+              }
+            ]
+          },
+          {
+            "label": "Services métier",
+            "nodes": [
+              {
+                "id": "api1",
+                "name": "API dossiers",
+                "detail": "REST interne",
+                "kind": "service"
+              },
+              {
+                "id": "api2",
+                "name": "API contrats",
+                "detail": "REST interne",
+                "kind": "service"
+              },
+              {
+                "id": "cache",
+                "name": "Cache de réponse",
+                "detail": "optionnel",
+                "kind": "data"
+              }
+            ]
+          },
+          {
+            "label": "Stockages",
+            "nodes": [
+              {
+                "id": "db1",
+                "name": "Base dossiers",
+                "detail": "données métier",
+                "kind": "data"
+              },
+              {
+                "id": "db2",
+                "name": "Base contrats",
+                "detail": "données métier",
+                "kind": "data"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "web",
+            "to": "cdn",
+            "label": "assets",
+            "type": "asset"
+          },
+          {
+            "from": "web",
+            "to": "gateway",
+            "label": "session HTTP",
+            "type": "api"
+          },
+          {
+            "from": "gateway",
+            "to": "bff",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "bff",
+            "to": "api1",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "bff",
+            "to": "api2",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "bff",
+            "to": "cache",
+            "label": "cache",
+            "type": "api"
+          },
+          {
+            "from": "api1",
+            "to": "db1",
+            "label": "données",
+            "type": "api"
+          },
+          {
+            "from": "api2",
+            "to": "db2",
+            "label": "données",
+            "type": "api"
+          }
+        ],
+        "transverse": [
+          "IdP OAuth : BFF client confidentiel, secrets serveur",
+          "Session web, CSRF, propagation identité, traces distribuées"
+        ]
+      }
     },
     {
       "id": "bff-graphql",
@@ -223,7 +705,187 @@
         "apollo",
         "oauth",
         "azure"
-      ]
+      ],
+      "simple": "Le navigateur décrit ses besoins en GraphQL à un BFF qui lui est dédié. Ce serveur assemble les données des APIs sans exposer les jetons OAuth au JavaScript.",
+      "audience": [
+        "web"
+      ],
+      "audienceDetail": "Web/PWA ; décliner un schéma ou un BFF spécifique si le client mobile a des besoins différents.",
+      "mobileNote": "Pour mobile natif, prévoir des opérations adaptées, une identité propre et éventuellement un BFF mobile séparé.",
+      "preview": [
+        "Navigateur",
+        "Gateway",
+        "BFF GraphQL",
+        "Résolveurs A/B",
+        "Services / DB"
+      ],
+      "steps": [
+        "La SPA reçoit son bundle depuis le CDN.",
+        "Le navigateur appelle le BFF GraphQL avec sa session sécurisée.",
+        "Le serveur valide schéma, limites de coût et permissions.",
+        "Les résolveurs utilisent batching/cache et accèdent à plusieurs APIs métier.",
+        "Le BFF assemble la réponse typée et gère les erreurs partielles."
+      ],
+      "implementation": [
+        "Séparer le schéma d'expérience du schéma métier mutualisé.",
+        "Limiter profondeur/complexité, autoriser par champ et gérer N+1.",
+        "Conserver session, jetons OAuth et éventuels secrets côté BFF."
+      ],
+      "example": "Poste de travail agent composé de fiches, alertes et statistiques très variables selon l'écran.",
+      "architecture": {
+        "stages": [
+          {
+            "label": "Expérience",
+            "nodes": [
+              {
+                "id": "web",
+                "name": "SPA web",
+                "detail": "requêtes ciblées",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Accès",
+            "nodes": [
+              {
+                "id": "cdn",
+                "name": "CDN statique",
+                "detail": "bundle web",
+                "kind": "cdn"
+              },
+              {
+                "id": "gateway",
+                "name": "Gateway",
+                "detail": "HTTPS · routage",
+                "kind": "gateway"
+              }
+            ]
+          },
+          {
+            "label": "BFF GraphQL",
+            "nodes": [
+              {
+                "id": "bff",
+                "name": "Serveur BFF GraphQL",
+                "detail": "session + schéma UI",
+                "kind": "bff"
+              }
+            ]
+          },
+          {
+            "label": "Résolveurs",
+            "nodes": [
+              {
+                "id": "r1",
+                "name": "Résolveur profil",
+                "detail": "batch / auth",
+                "kind": "service"
+              },
+              {
+                "id": "r2",
+                "name": "Résolveur dossiers",
+                "detail": "batch / cache",
+                "kind": "service"
+              }
+            ]
+          },
+          {
+            "label": "Domaines",
+            "nodes": [
+              {
+                "id": "s1",
+                "name": "Service identité",
+                "detail": "REST",
+                "kind": "service"
+              },
+              {
+                "id": "s2",
+                "name": "Service dossiers",
+                "detail": "REST / RPC",
+                "kind": "service"
+              }
+            ]
+          },
+          {
+            "label": "Données",
+            "nodes": [
+              {
+                "id": "d1",
+                "name": "Base identité",
+                "detail": "métier",
+                "kind": "data"
+              },
+              {
+                "id": "d2",
+                "name": "Base dossiers",
+                "detail": "métier",
+                "kind": "data"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "web",
+            "to": "cdn",
+            "label": "assets",
+            "type": "asset"
+          },
+          {
+            "from": "web",
+            "to": "gateway",
+            "label": "GraphQL",
+            "type": "api"
+          },
+          {
+            "from": "gateway",
+            "to": "bff",
+            "label": "HTTPS",
+            "type": "api"
+          },
+          {
+            "from": "bff",
+            "to": "r1",
+            "label": "résolution",
+            "type": "api"
+          },
+          {
+            "from": "bff",
+            "to": "r2",
+            "label": "résolution",
+            "type": "api"
+          },
+          {
+            "from": "r1",
+            "to": "s1",
+            "label": "appel",
+            "type": "api"
+          },
+          {
+            "from": "r2",
+            "to": "s2",
+            "label": "appel",
+            "type": "api"
+          },
+          {
+            "from": "s1",
+            "to": "d1",
+            "label": "lecture",
+            "type": "api"
+          },
+          {
+            "from": "s2",
+            "to": "d2",
+            "label": "lecture",
+            "type": "api"
+          }
+        ],
+        "transverse": [
+          "OAuth confidentiel, cookie de session, CSRF",
+          "Tracing par opération et résolveur, limites anti-abus"
+        ]
+      }
     },
     {
       "id": "ssr-bff",
@@ -271,8 +933,172 @@
       ],
       "refs": [
         "next",
-        "oauth"
-      ]
+        "oauth",
+        "mdn-ssr"
+      ],
+      "simple": "Le serveur fabrique l'HTML au moment de la visite (SSR : rendu côté serveur), puis le navigateur peut l'enrichir avec du JavaScript. Les routes serveur jouent aussi le rôle de BFF.",
+      "audience": [
+        "web"
+      ],
+      "audienceDetail": "Web, PWA ou site hybride. Un client mobile natif ne reçoit généralement pas l'HTML SSR.",
+      "mobileNote": "Le mobile natif consomme plutôt des APIs dédiées ; les pages SSR ciblent surtout les navigateurs.",
+      "preview": [
+        "Navigateur",
+        "CDN / runtime SSR",
+        "Routes BFF",
+        "Services métier",
+        "Bases de données"
+      ],
+      "steps": [
+        "Le navigateur demande une page au serveur SSR via HTTPS.",
+        "Le runtime récupère les données autorisées à l'aide de sa session serveur.",
+        "Le serveur génère et renvoie l'HTML initial, parfois mis en cache.",
+        "Le navigateur hydrate les composants interactifs et demande les données suivantes.",
+        "Les routes BFF masquent les services et secrets internes."
+      ],
+      "implementation": [
+        "Stratégie explicite par route : SSR dynamique, rendu statique ou CSR.",
+        "Cache distinguant contenu public et personnalisé ; cookies, sessions et CSRF.",
+        "Surveiller TTFB, coût du rendu serveur et erreurs d'hydratation."
+      ],
+      "example": "Espace web personnalisable avec pages publiques référencées et pages privées authentifiées.",
+      "architecture": {
+        "stages": [
+          {
+            "label": "Navigation",
+            "nodes": [
+              {
+                "id": "web",
+                "name": "Navigateur web",
+                "detail": "requête de page",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Entrée web",
+            "nodes": [
+              {
+                "id": "cdn",
+                "name": "CDN",
+                "detail": "assets mis en cache",
+                "kind": "cdn"
+              },
+              {
+                "id": "ssr",
+                "name": "Serveur SSR",
+                "detail": "HTML à la demande",
+                "kind": "bff"
+              }
+            ]
+          },
+          {
+            "label": "Couche serveur",
+            "nodes": [
+              {
+                "id": "routes",
+                "name": "Routes BFF",
+                "detail": "session / contrats écran",
+                "kind": "bff"
+              },
+              {
+                "id": "cache",
+                "name": "Cache rendu",
+                "detail": "public ou privé",
+                "kind": "data"
+              }
+            ]
+          },
+          {
+            "label": "APIs métier",
+            "nodes": [
+              {
+                "id": "api1",
+                "name": "Service contenu",
+                "detail": "données publiques",
+                "kind": "service"
+              },
+              {
+                "id": "api2",
+                "name": "Service profil",
+                "detail": "données privées",
+                "kind": "service"
+              }
+            ]
+          },
+          {
+            "label": "Stockages",
+            "nodes": [
+              {
+                "id": "db1",
+                "name": "Base contenus",
+                "detail": "métier",
+                "kind": "data"
+              },
+              {
+                "id": "db2",
+                "name": "Base profils",
+                "detail": "métier",
+                "kind": "data"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "web",
+            "to": "cdn",
+            "label": "assets",
+            "type": "asset"
+          },
+          {
+            "from": "web",
+            "to": "ssr",
+            "label": "HTML",
+            "type": "api"
+          },
+          {
+            "from": "ssr",
+            "to": "routes",
+            "label": "interne",
+            "type": "api"
+          },
+          {
+            "from": "ssr",
+            "to": "cache",
+            "label": "cache",
+            "type": "api"
+          },
+          {
+            "from": "routes",
+            "to": "api1",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "routes",
+            "to": "api2",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "api1",
+            "to": "db1",
+            "label": "lire",
+            "type": "api"
+          },
+          {
+            "from": "api2",
+            "to": "db2",
+            "label": "lire",
+            "type": "api"
+          }
+        ],
+        "transverse": [
+          "SSR : HTML généré à la requête, CSR possible après hydratation",
+          "Identité côté serveur ; isoler le cache par utilisateur"
+        ]
+      }
     },
     {
       "id": "ssg-direct",
@@ -320,8 +1146,141 @@
       ],
       "refs": [
         "next",
-        "aws"
-      ]
+        "aws",
+        "mdn-ssr"
+      ],
+      "simple": "SSG signifie génération statique : les pages HTML sont fabriquées à la construction, puis diffusées par un CDN. Les fonctions dynamiques continuent à appeler une API.",
+      "audience": [
+        "web"
+      ],
+      "audienceDetail": "Web et PWA, pages de documentation ou contenus peu personnalisés ; pas d'HTML destiné à un mobile natif.",
+      "mobileNote": "Le mobile natif utilise des APIs ; la génération HTML statique sert aux navigateurs.",
+      "preview": [
+        "Build SSG",
+        "Stockage statique",
+        "CDN",
+        "Navigateur",
+        "API optionnelle"
+      ],
+      "steps": [
+        "Le pipeline build récupère le contenu publié et génère les pages HTML.",
+        "Les fichiers sont déposés dans le stockage objet puis distribués sur un CDN.",
+        "Le navigateur récupère la page pré-générée, sans rendu serveur à la demande.",
+        "Pour les zones dynamiques, JavaScript appelle directement une API.",
+        "Une mise à jour de contenu déclenche rebuild ou invalidation ciblée."
+      ],
+      "implementation": [
+        "Pipeline CI de génération et stratégie de publication/invalidation CDN.",
+        "Séparer contenu statique, données publiques en cache et données privées.",
+        "Ne jamais embarquer de secrets dans les pages ou bundles statiques."
+      ],
+      "example": "Référentiel de patterns ou portail documentaire avec recherche et favoris locaux.",
+      "architecture": {
+        "stages": [
+          {
+            "label": "Production (hors requête)",
+            "nodes": [
+              {
+                "id": "build",
+                "name": "Build SSG",
+                "detail": "génère HTML au déploiement",
+                "kind": "build"
+              }
+            ]
+          },
+          {
+            "label": "Diffusion",
+            "nodes": [
+              {
+                "id": "store",
+                "name": "Stockage statique",
+                "detail": "pages + JS + CSS",
+                "kind": "data"
+              }
+            ]
+          },
+          {
+            "label": "Distribution",
+            "nodes": [
+              {
+                "id": "cdn",
+                "name": "CDN",
+                "detail": "cache global des pages",
+                "kind": "cdn"
+              }
+            ]
+          },
+          {
+            "label": "Navigateur",
+            "nodes": [
+              {
+                "id": "web",
+                "name": "Page web",
+                "detail": "HTML prêt à afficher",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Dynamique optionnelle",
+            "nodes": [
+              {
+                "id": "api",
+                "name": "API REST",
+                "detail": "actions / données à jour",
+                "kind": "gateway"
+              }
+            ]
+          },
+          {
+            "label": "Stockage métier",
+            "nodes": [
+              {
+                "id": "db",
+                "name": "Base métier",
+                "detail": "si API nécessaire",
+                "kind": "data"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "build",
+            "to": "store",
+            "label": "publier",
+            "type": "deploy"
+          },
+          {
+            "from": "store",
+            "to": "cdn",
+            "label": "assets",
+            "type": "asset"
+          },
+          {
+            "from": "cdn",
+            "to": "web",
+            "label": "HTML",
+            "type": "asset"
+          },
+          {
+            "from": "web",
+            "to": "api",
+            "label": "fetch",
+            "type": "api"
+          },
+          {
+            "from": "api",
+            "to": "db",
+            "label": "métier",
+            "type": "api"
+          }
+        ],
+        "transverse": [
+          "Les lignes build → CDN décrivent une livraison, pas un appel API",
+          "Mises à jour : rebuild / revalidation / purge CDN"
+        ]
+      }
     },
     {
       "id": "serverless-bff-rest",
@@ -376,7 +1335,192 @@
         "aws",
         "oauth",
         "azure"
-      ]
+      ],
+      "simple": "Une SPA web s'exécute dans le navigateur, tandis que des fonctions à la demande jouent le rôle de BFF REST. La gateway route les appels ; les fonctions assemblent les APIs.",
+      "audience": [
+        "web",
+        "mobile"
+      ],
+      "audienceDetail": "Web/PWA ; le mobile natif peut partager l'API mais un BFF distinct est conseillé si ses besoins divergent.",
+      "mobileNote": "L'application mobile ne charge pas le CDN web ; elle appelle la gateway directement avec ses propres jetons. Ne pas réutiliser automatiquement les cookies du BFF web.",
+      "preview": [
+        "Web / Mobile",
+        "CDN + Gateway",
+        "Function BFF",
+        "APIs métier",
+        "DB / Cache"
+      ],
+      "steps": [
+        "Le CDN distribue les assets uniquement au navigateur web.",
+        "Web et mobile appellent l'API Gateway via HTTPS avec des sessions/identités adaptées.",
+        "La gateway applique politiques et routage, puis invoque la fonction BFF.",
+        "La fonction s'authentifie en aval, compose les APIs et répond sans état local durable.",
+        "Bases/cache et secret manager gèrent données, jetons ou sessions si nécessaires."
+      ],
+      "implementation": [
+        "Choix du plan Functions et limites de durée/mémoire/concurrence.",
+        "Sessions sécurisées web (cookies/CSRF) ou client mobile OAuth natif ; ne pas les confondre.",
+        "Gestion de secrets, timeouts API, connexions DB et quotas de la gateway.",
+        "Instrumentation cold starts, coûts par invocation et fan-out."
+      ],
+      "example": "Espace de consultation web à trafic variable, avec API mobile réutilisée ou dédiée.",
+      "serverless": {
+        "trigger": "HTTPS via API Gateway",
+        "compute": "Fonctions HTTP stateless jouant le rôle de BFF",
+        "state": "Session store/DB/cache externe si nécessaire ; secrets manager",
+        "scale": "Instances créées à la demande selon le fournisseur, quotas de concurrence",
+        "watch": "Cold starts, p95, timeout, fan-out et nombre d'invocations",
+        "tradeoff": "Moins de serveurs à gérer, mais latence à froid et prix à l'invocation à mesurer."
+      },
+      "architecture": {
+        "stages": [
+          {
+            "label": "Clients",
+            "nodes": [
+              {
+                "id": "web",
+                "name": "Web / PWA",
+                "detail": "HTML + JS",
+                "kind": "client"
+              },
+              {
+                "id": "mobile",
+                "name": "Application mobile",
+                "detail": "iOS / Android natif",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Diffusion & entrée",
+            "nodes": [
+              {
+                "id": "cdn",
+                "name": "CDN statique",
+                "detail": "bundle web seulement",
+                "kind": "cdn"
+              },
+              {
+                "id": "gw",
+                "name": "API Gateway + WAF",
+                "detail": "HTTPS, quota, identité",
+                "kind": "gateway"
+              }
+            ]
+          },
+          {
+            "label": "Exécution serverless",
+            "nodes": [
+              {
+                "id": "fn",
+                "name": "Function BFF REST",
+                "detail": "composition / tokens serveur",
+                "kind": "bff"
+              },
+              {
+                "id": "secret",
+                "name": "Gestionnaire de secrets",
+                "detail": "informations sensibles",
+                "kind": "security"
+              }
+            ]
+          },
+          {
+            "label": "Services",
+            "nodes": [
+              {
+                "id": "api1",
+                "name": "API dossiers",
+                "detail": "REST",
+                "kind": "service"
+              },
+              {
+                "id": "api2",
+                "name": "API comptes",
+                "detail": "REST",
+                "kind": "service"
+              }
+            ]
+          },
+          {
+            "label": "Persistance",
+            "nodes": [
+              {
+                "id": "db",
+                "name": "Base managée",
+                "detail": "données métier",
+                "kind": "data"
+              },
+              {
+                "id": "cache",
+                "name": "Cache / session store",
+                "detail": "facultatif",
+                "kind": "data"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "web",
+            "to": "cdn",
+            "label": "assets",
+            "type": "asset"
+          },
+          {
+            "from": "web",
+            "to": "gw",
+            "label": "HTTPS API",
+            "type": "api"
+          },
+          {
+            "from": "mobile",
+            "to": "gw",
+            "label": "HTTPS API",
+            "type": "api"
+          },
+          {
+            "from": "gw",
+            "to": "fn",
+            "label": "invoke",
+            "type": "api"
+          },
+          {
+            "from": "fn",
+            "to": "secret",
+            "label": "lire secret",
+            "type": "auth"
+          },
+          {
+            "from": "fn",
+            "to": "api1",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "fn",
+            "to": "api2",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "api1",
+            "to": "db",
+            "label": "données",
+            "type": "api"
+          },
+          {
+            "from": "api2",
+            "to": "cache",
+            "label": "cache",
+            "type": "api"
+          }
+        ],
+        "transverse": [
+          "Secrets / sessions dans un service externe : la fonction est stateless",
+          "Quota / observabilité / IAM / cold starts"
+        ]
+      }
     },
     {
       "id": "serverless-graphql",
@@ -432,7 +1576,186 @@
         "apollo",
         "aws",
         "oauth"
-      ]
+      ],
+      "simple": "Le navigateur ou l'app mobile interroge un endpoint GraphQL. Les résolveurs, exécutés en fonctions serverless, récupèrent les données adaptées aux écrans.",
+      "audience": [
+        "web",
+        "mobile"
+      ],
+      "audienceDetail": "Web/PWA et mobile natif possibles ; schéma commun à gouverner ou variantes adaptées par canal.",
+      "mobileNote": "Mobile utilise ses propres clients GraphQL et jetons OAuth. Un cookie de BFF web n'est pas une solution native par défaut.",
+      "preview": [
+        "Web / Mobile",
+        "Gateway GraphQL",
+        "Résolveurs Functions",
+        "APIs / DB",
+        "Cache"
+      ],
+      "steps": [
+        "Le CDN diffuse uniquement le front web.",
+        "Web et mobile envoient des opérations GraphQL à la gateway.",
+        "La gateway valide authentification, autorisations et budgets de requête.",
+        "Des fonctions résolveurs exécutent le batching et interrogent APIs / bases.",
+        "La gateway agrège les champs et renvoie les résultats."
+      ],
+      "implementation": [
+        "Gestion explicite du coût de requête, quotas et profondeur du schéma.",
+        "Batching/cache, contrôle du nombre d'invocations par opération.",
+        "Connexions de base et accès au réseau privé selon le fournisseur.",
+        "Surveiller latence par résolveur et coût des appels en cascade."
+      ],
+      "example": "Application multicanal offrant des vues variables d'un catalogue métier.",
+      "serverless": {
+        "trigger": "Opérations GraphQL via gateway managée",
+        "compute": "Résolveurs Functions ou runtime GraphQL managé",
+        "state": "Data sources, caches et bases externes",
+        "scale": "Dépend du nombre de résolveurs invoqués et des limites fournisseurs",
+        "watch": "Invocations par champ, N+1, cold starts, complexité des requêtes",
+        "tradeoff": "Très flexible pour les écrans ; attention à la multiplication d'invocations et à la gouvernance du schéma."
+      },
+      "architecture": {
+        "stages": [
+          {
+            "label": "Clients",
+            "nodes": [
+              {
+                "id": "web",
+                "name": "Client web GraphQL",
+                "detail": "SPA / PWA",
+                "kind": "client"
+              },
+              {
+                "id": "mobile",
+                "name": "Client mobile GraphQL",
+                "detail": "native",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Diffusion & API",
+            "nodes": [
+              {
+                "id": "cdn",
+                "name": "CDN statique",
+                "detail": "bundle web",
+                "kind": "cdn"
+              },
+              {
+                "id": "gw",
+                "name": "Gateway GraphQL",
+                "detail": "schéma + auth + quotas",
+                "kind": "gateway"
+              }
+            ]
+          },
+          {
+            "label": "Fonctions résolveurs",
+            "nodes": [
+              {
+                "id": "res1",
+                "name": "Function profils",
+                "detail": "batch / cache",
+                "kind": "bff"
+              },
+              {
+                "id": "res2",
+                "name": "Function commandes",
+                "detail": "pagination",
+                "kind": "bff"
+              }
+            ]
+          },
+          {
+            "label": "Systèmes métiers",
+            "nodes": [
+              {
+                "id": "api",
+                "name": "Service clients",
+                "detail": "API métier",
+                "kind": "service"
+              },
+              {
+                "id": "db",
+                "name": "Base commandes",
+                "detail": "managée",
+                "kind": "data"
+              }
+            ]
+          },
+          {
+            "label": "Observabilité",
+            "nodes": [
+              {
+                "id": "obs",
+                "name": "Traces résolveurs",
+                "detail": "latence / coût",
+                "kind": "observability"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "web",
+            "to": "cdn",
+            "label": "assets",
+            "type": "asset"
+          },
+          {
+            "from": "web",
+            "to": "gw",
+            "label": "GraphQL",
+            "type": "api"
+          },
+          {
+            "from": "mobile",
+            "to": "gw",
+            "label": "GraphQL",
+            "type": "api"
+          },
+          {
+            "from": "gw",
+            "to": "res1",
+            "label": "résoudre",
+            "type": "api"
+          },
+          {
+            "from": "gw",
+            "to": "res2",
+            "label": "résoudre",
+            "type": "api"
+          },
+          {
+            "from": "res1",
+            "to": "api",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "res2",
+            "to": "db",
+            "label": "query",
+            "type": "api"
+          },
+          {
+            "from": "api",
+            "to": "obs",
+            "label": "traces",
+            "type": "telemetry"
+          },
+          {
+            "from": "db",
+            "to": "obs",
+            "label": "traces",
+            "type": "telemetry"
+          }
+        ],
+        "transverse": [
+          "Autorisation par donnée et coût des requêtes",
+          "Résolveurs stateless ; surveiller N+1 et démarrages à froid"
+        ]
+      }
     },
     {
       "id": "edge-ssr",
@@ -480,8 +1803,152 @@
       ],
       "refs": [
         "next",
-        "oauth"
-      ]
+        "oauth",
+        "mdn-ssr"
+      ],
+      "simple": "Le HTML est calculé près de l'utilisateur dans un runtime Edge, plutôt que systématiquement dans un serveur central. Les données métier peuvent rester à l'origine.",
+      "audience": [
+        "web"
+      ],
+      "audienceDetail": "Web et PWA. Un mobile natif ne tire généralement pas profit du rendu HTML edge.",
+      "mobileNote": "L'app mobile utilise les APIs ; un edge gateway peut réduire des latences mais ne remplace pas les APIs métier.",
+      "preview": [
+        "Navigateur",
+        "CDN / Edge",
+        "Rendu SSR",
+        "API origine",
+        "DB distante"
+      ],
+      "steps": [
+        "Le navigateur demande une page au CDN edge.",
+        "Le runtime edge vérifie le cache et produit le HTML selon le contexte.",
+        "Les données nécessaires sont récupérées depuis des APIs à l'origine.",
+        "Le HTML est renvoyé ; le JS hydrate si besoin.",
+        "Les appels métier supplémentaires restent sécurisés au niveau des APIs."
+      ],
+      "implementation": [
+        "API de runtime edge compatible avec les dépendances utilisées.",
+        "Cache segmenté pour éviter la fuite de données personnalisées.",
+        "Évaluer latence edge → origine : une base distante peut annuler les gains.",
+        "Contrôler contraintes CPU, quotas et gestion des secrets à l'edge."
+      ],
+      "example": "Front web international avec contenu contextualisé, backend métier centralisé.",
+      "serverless": {
+        "trigger": "Requête HTTP au CDN / runtime edge",
+        "compute": "Fonction edge qui rend des pages ou adapte les réponses",
+        "state": "Cache régional ; données privées à l'origine",
+        "scale": "Régions edge selon fournisseur et quotas CPU",
+        "watch": "TTFB par région, hit ratio, latence edge → origine",
+        "tradeoff": "Edge rapproche le calcul du client, pas automatiquement les bases distantes."
+      },
+      "architecture": {
+        "stages": [
+          {
+            "label": "Navigateur",
+            "nodes": [
+              {
+                "id": "web",
+                "name": "Navigateur web",
+                "detail": "HTML attendu",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Edge",
+            "nodes": [
+              {
+                "id": "cdn",
+                "name": "CDN / cache edge",
+                "detail": "assets et pages publiques",
+                "kind": "cdn"
+              },
+              {
+                "id": "edge",
+                "name": "Fonction Edge SSR",
+                "detail": "rendu HTML dynamique",
+                "kind": "bff"
+              }
+            ]
+          },
+          {
+            "label": "Services origine",
+            "nodes": [
+              {
+                "id": "api1",
+                "name": "API contenu",
+                "detail": "données affichées",
+                "kind": "service"
+              },
+              {
+                "id": "api2",
+                "name": "API compte",
+                "detail": "données privées",
+                "kind": "service"
+              }
+            ]
+          },
+          {
+            "label": "Persistance",
+            "nodes": [
+              {
+                "id": "db1",
+                "name": "Stockage de contenu",
+                "detail": "région origine",
+                "kind": "data"
+              },
+              {
+                "id": "db2",
+                "name": "Base utilisateurs",
+                "detail": "région origine",
+                "kind": "data"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "web",
+            "to": "cdn",
+            "label": "cache public",
+            "type": "asset"
+          },
+          {
+            "from": "web",
+            "to": "edge",
+            "label": "SSR",
+            "type": "api"
+          },
+          {
+            "from": "edge",
+            "to": "api1",
+            "label": "HTTPS",
+            "type": "api"
+          },
+          {
+            "from": "edge",
+            "to": "api2",
+            "label": "HTTPS",
+            "type": "api"
+          },
+          {
+            "from": "api1",
+            "to": "db1",
+            "label": "lire",
+            "type": "api"
+          },
+          {
+            "from": "api2",
+            "to": "db2",
+            "label": "lire",
+            "type": "api"
+          }
+        ],
+        "transverse": [
+          "Runtime edge limité selon le fournisseur",
+          "Bien mesurer latence régionale et clés de cache"
+        ]
+      }
     },
     {
       "id": "microfront-bff",
@@ -535,7 +2002,1393 @@
       "refs": [
         "azure",
         "oauth"
-      ]
+      ],
+      "simple": "Plusieurs équipes publient chacune une partie du front et, si nécessaire, leur BFF dédié. Un shell assemble le parcours utilisateur.",
+      "audience": [
+        "web"
+      ],
+      "audienceDetail": "Architecture web principalement ; les applications mobiles natives se composent autrement et nécessitent des contrats dédiés.",
+      "mobileNote": "Ne pas transposer directement des micro-frontends web dans une app native ; utiliser des modules mobiles / APIs par domaine.",
+      "preview": [
+        "Shell web",
+        "Micro-fronts A/B",
+        "BFF A/B",
+        "APIs domaine",
+        "DB"
+      ],
+      "steps": [
+        "Le navigateur charge le shell et ses règles de navigation.",
+        "Le shell charge les micro-frontends des domaines A et B.",
+        "Chaque micro-frontend appelle son BFF adapté.",
+        "Chaque BFF invoque uniquement les services de son domaine.",
+        "Les équipes publient de façon indépendante avec des contrats et budgets UX."
+      ],
+      "implementation": [
+        "Frontières métier et ownership explicites pour chaque micro-frontend.",
+        "Gouvernance design system, authentification, navigation et versions.",
+        "Contrats inter-domaines et tests de bout en bout ciblés.",
+        "Budgets de bundle et observabilité par domaine."
+      ],
+      "example": "Suite d'applications métier avec domaines indépendants et équipes autonomes.",
+      "architecture": {
+        "stages": [
+          {
+            "label": "Expérience web",
+            "nodes": [
+              {
+                "id": "web",
+                "name": "Navigateur + shell",
+                "detail": "navigation / identité",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Composition",
+            "nodes": [
+              {
+                "id": "mfeA",
+                "name": "Micro-front dossiers",
+                "detail": "équipe A",
+                "kind": "client"
+              },
+              {
+                "id": "mfeB",
+                "name": "Micro-front contrats",
+                "detail": "équipe B",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Backends par front",
+            "nodes": [
+              {
+                "id": "bffA",
+                "name": "BFF dossiers",
+                "detail": "REST / session",
+                "kind": "bff"
+              },
+              {
+                "id": "bffB",
+                "name": "BFF contrats",
+                "detail": "REST / session",
+                "kind": "bff"
+              }
+            ]
+          },
+          {
+            "label": "Services",
+            "nodes": [
+              {
+                "id": "svcA",
+                "name": "API dossiers",
+                "detail": "domaine A",
+                "kind": "service"
+              },
+              {
+                "id": "svcB",
+                "name": "API contrats",
+                "detail": "domaine B",
+                "kind": "service"
+              }
+            ]
+          },
+          {
+            "label": "Données",
+            "nodes": [
+              {
+                "id": "dbA",
+                "name": "Base dossiers",
+                "detail": "propriété domaine A",
+                "kind": "data"
+              },
+              {
+                "id": "dbB",
+                "name": "Base contrats",
+                "detail": "propriété domaine B",
+                "kind": "data"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "web",
+            "to": "mfeA",
+            "label": "charge",
+            "type": "api"
+          },
+          {
+            "from": "web",
+            "to": "mfeB",
+            "label": "charge",
+            "type": "api"
+          },
+          {
+            "from": "mfeA",
+            "to": "bffA",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "mfeB",
+            "to": "bffB",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "bffA",
+            "to": "svcA",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "bffB",
+            "to": "svcB",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "svcA",
+            "to": "dbA",
+            "label": "écrit",
+            "type": "api"
+          },
+          {
+            "from": "svcB",
+            "to": "dbB",
+            "label": "écrit",
+            "type": "api"
+          }
+        ],
+        "transverse": [
+          "Design system, SSO, navigation et observabilité transverses",
+          "Forte charge organisationnelle : éviter pour une seule petite équipe"
+        ]
+      }
+    },
+    {
+      "id": "multi-channel-bff",
+      "title": "Web + mobile : deux BFF spécialisés",
+      "subtitle": "BFF par canal · web / mobile",
+      "tags": [
+        "bff-rest"
+      ],
+      "rendering": "CSR / natif",
+      "hosting": "CDN + serveurs BFF",
+      "complexity": "Élevée",
+      "auth": "Cookie web / OAuth PKCE mobile",
+      "summary": "Une expérience web et une application mobile ont chacune une couche BFF dédiée, avec des payloads et rythmes de déploiement adaptés.",
+      "problem": "Le web et le mobile sollicitent les mêmes domaines mais n'ont ni les mêmes écrans, ni les mêmes contraintes réseau et de sécurité.",
+      "when": "Deux équipes de produits ou de canaux travaillent sur des parcours distincts et doivent évoluer indépendamment.",
+      "benefits": [
+        "Les payloads et paginations du mobile évitent les transferts superflus.",
+        "Les BFF peuvent évoluer indépendamment des services métier partagés.",
+        "La sécurité et la gestion de session suivent les caractéristiques du client."
+      ],
+      "tradeoffs": [
+        "Deux runtimes et contrats à maintenir.",
+        "Il faut éviter de dupliquer les règles métier dans chaque BFF.",
+        "Gateway, identité et monitoring communs nécessitent une gouvernance."
+      ],
+      "security": "Web : BFF confidentiel, cookie de session et CSRF. Mobile natif : OAuth Authorization Code + PKCE, stockage sûr de tokens et éventuel BFF mobile spécialisé.",
+      "operations": "Suivre latence et consommation réseau par canal ; tests de contrat indépendants.",
+      "diagram": [
+        [
+          "Web / Mobile",
+          "canaux",
+          "client"
+        ],
+        [
+          "API Gateway",
+          "routing",
+          "api"
+        ],
+        [
+          "BFF web / mobile",
+          "adaptation",
+          "bff"
+        ],
+        [
+          "Services métier",
+          "partagés",
+          "service"
+        ]
+      ],
+      "refs": [
+        "azure",
+        "oauth"
+      ],
+      "simple": "Un BFF pour le navigateur et un autre pour l'application mobile. Les services métier restent partagés, mais chaque équipe adapte les réponses à ses écrans.",
+      "audience": [
+        "web",
+        "mobile"
+      ],
+      "audienceDetail": "Deux canaux réels : web/PWA et application mobile native avec ses propres modalités d'identité.",
+      "mobileNote": "Mobile natif : contraintes réseau, hors ligne, taille des payloads et OAuth sont à gérer explicitement, pas via les cookies web.",
+      "preview": [
+        "Web & Mobile",
+        "Gateway",
+        "BFF Web / Mobile",
+        "Services communs",
+        "Données"
+      ],
+      "steps": [
+        "L'utilisateur consulte le navigateur ou l'application native.",
+        "La gateway route les requêtes vers le BFF du canal concerné.",
+        "Le BFF web gère sa session cookie ; le canal mobile utilise son modèle OAuth et ses propres contrôles.",
+        "Chaque BFF compose les APIs métier communes selon le besoin du canal.",
+        "Les deux clients affichent des données adaptées à leurs usages."
+      ],
+      "implementation": [
+        "Ne pas partager les mêmes endpoints BFF uniquement par commodité.",
+        "Établir ownership, contrats, stratégies de cache et métriques par canal.",
+        "Conserver les règles métier au niveau des services partagés."
+      ],
+      "example": "Plateforme assurés : espace web riche et app mobile orientée consultations rapides.",
+      "architecture": {
+        "stages": [
+          {
+            "label": "Clients",
+            "nodes": [
+              {
+                "id": "web",
+                "name": "Navigateur web / PWA",
+                "detail": "cookies web",
+                "kind": "client"
+              },
+              {
+                "id": "mobile",
+                "name": "App native iOS / Android",
+                "detail": "OAuth PKCE / secure storage",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Accès",
+            "nodes": [
+              {
+                "id": "gateway",
+                "name": "API Gateway",
+                "detail": "routage / quotas",
+                "kind": "gateway"
+              }
+            ]
+          },
+          {
+            "label": "Adaptation par canal",
+            "nodes": [
+              {
+                "id": "bffWeb",
+                "name": "BFF Web REST",
+                "detail": "agrégation / session",
+                "kind": "bff"
+              },
+              {
+                "id": "bffMobile",
+                "name": "BFF Mobile REST",
+                "detail": "payload compact",
+                "kind": "bff"
+              }
+            ]
+          },
+          {
+            "label": "Services communs",
+            "nodes": [
+              {
+                "id": "api1",
+                "name": "Service compte",
+                "detail": "REST",
+                "kind": "service"
+              },
+              {
+                "id": "api2",
+                "name": "Service historique",
+                "detail": "REST",
+                "kind": "service"
+              }
+            ]
+          },
+          {
+            "label": "Stockages",
+            "nodes": [
+              {
+                "id": "db1",
+                "name": "Base compte",
+                "detail": "propriété domaine",
+                "kind": "data"
+              },
+              {
+                "id": "db2",
+                "name": "Base historique",
+                "detail": "propriété domaine",
+                "kind": "data"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "web",
+            "to": "gateway",
+            "label": "HTTPS",
+            "type": "api"
+          },
+          {
+            "from": "mobile",
+            "to": "gateway",
+            "label": "HTTPS",
+            "type": "api"
+          },
+          {
+            "from": "gateway",
+            "to": "bffWeb",
+            "label": "route web",
+            "type": "api"
+          },
+          {
+            "from": "gateway",
+            "to": "bffMobile",
+            "label": "route mobile",
+            "type": "api"
+          },
+          {
+            "from": "bffWeb",
+            "to": "api1",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "bffWeb",
+            "to": "api2",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "bffMobile",
+            "to": "api1",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "bffMobile",
+            "to": "api2",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "api1",
+            "to": "db1",
+            "label": "lecture",
+            "type": "api"
+          },
+          {
+            "from": "api2",
+            "to": "db2",
+            "label": "lecture",
+            "type": "api"
+          }
+        ],
+        "transverse": [
+          "Contrat REST et SLO par canal",
+          "Web : cookies/CSRF ; mobile : PKCE et stockage sûr"
+        ]
+      }
+    },
+    {
+      "id": "mobile-native-direct",
+      "title": "Mobile natif → API REST sans BFF",
+      "subtitle": "Mobile natif · accès API direct",
+      "tags": [
+        "direct"
+      ],
+      "rendering": "Natif iOS / Android",
+      "hosting": "API Gateway + services",
+      "complexity": "Modérée",
+      "auth": "OAuth Authorization Code + PKCE",
+      "summary": "Une application installée sur le téléphone interroge directement des APIs métier via une gateway, sans serveur spécifique au canal.",
+      "problem": "Une app mobile a des besoins limités et les APIs existantes répondent directement à ses écrans.",
+      "when": "Le contrat API est stable, les requêtes peu complexes et les contraintes réseau mobiles maîtrisées.",
+      "benefits": [
+        "Pas de runtime BFF supplémentaire.",
+        "Communication directe et traçable avec les services.",
+        "Le client peut utiliser stockage local et file d'attente hors ligne."
+      ],
+      "tradeoffs": [
+        "Risque de sur-consommation réseau et de requêtes multiples.",
+        "Adaptation aux spécificités iOS/Android dans l'application.",
+        "Tokens et secrets locaux nécessitent une gestion robuste."
+      ],
+      "security": "Client OAuth public natif avec Authorization Code + PKCE ; stockage des tokens dans les mécanismes sécurisés du système. Autorisation toujours en backend.",
+      "operations": "Mesurer temps sur réseaux mobiles, échecs hors ligne, consommation et versions API.",
+      "diagram": [
+        [
+          "App native",
+          "OAuth PKCE",
+          "client"
+        ],
+        [
+          "Gateway REST",
+          "sécurité",
+          "api"
+        ],
+        [
+          "APIs métiers",
+          "REST",
+          "service"
+        ],
+        [
+          "Bases",
+          "données",
+          "data"
+        ]
+      ],
+      "refs": [
+        "oauth",
+        "azure"
+      ],
+      "simple": "Une app iOS ou Android appelle l'API REST directement. Elle n'a pas de HTML à télécharger : le client mobile est une application native.",
+      "audience": [
+        "mobile"
+      ],
+      "audienceDetail": "Application mobile native, pas un site mobile ni une PWA.",
+      "mobileNote": "Le mobile gère son cycle de vie, le réseau fluctuant et le stockage local chiffré. Un CDN web n'est pas une brique obligatoire.",
+      "preview": [
+        "App native",
+        "OAuth PKCE",
+        "Gateway REST",
+        "Services",
+        "Données"
+      ],
+      "steps": [
+        "L'utilisateur ouvre l'app native installée.",
+        "Le client s'authentifie via un fournisseur d'identité avec PKCE.",
+        "Les requêtes HTTP passent par la gateway qui contrôle les droits.",
+        "Les APIs métier renvoient les données adaptées.",
+        "L'app gère le cache local et la reconnexion si nécessaire."
+      ],
+      "implementation": [
+        "Contrats API versionnés pour supporter d'anciennes versions de l'app.",
+        "Gestion du mode hors connexion, pagination et connectivité intermittente.",
+        "Stockage sécurisé des tokens par l'OS et PKCE."
+      ],
+      "example": "App mobile de consultation de rendez-vous avec peu d'agrégation.",
+      "architecture": {
+        "stages": [
+          {
+            "label": "Terminal mobile",
+            "nodes": [
+              {
+                "id": "mobile",
+                "name": "App iOS / Android",
+                "detail": "UI native · cache local",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Identité & API",
+            "nodes": [
+              {
+                "id": "idp",
+                "name": "Fournisseur d'identité",
+                "detail": "OAuth PKCE",
+                "kind": "security"
+              },
+              {
+                "id": "gw",
+                "name": "Gateway REST",
+                "detail": "HTTPS / quotas",
+                "kind": "gateway"
+              }
+            ]
+          },
+          {
+            "label": "Services",
+            "nodes": [
+              {
+                "id": "s1",
+                "name": "API profil",
+                "detail": "REST",
+                "kind": "service"
+              },
+              {
+                "id": "s2",
+                "name": "API rendez-vous",
+                "detail": "REST",
+                "kind": "service"
+              }
+            ]
+          },
+          {
+            "label": "Données",
+            "nodes": [
+              {
+                "id": "d1",
+                "name": "Base profil",
+                "detail": "métier",
+                "kind": "data"
+              },
+              {
+                "id": "d2",
+                "name": "Base planning",
+                "detail": "métier",
+                "kind": "data"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "mobile",
+            "to": "idp",
+            "label": "login",
+            "type": "auth"
+          },
+          {
+            "from": "mobile",
+            "to": "gw",
+            "label": "REST",
+            "type": "api"
+          },
+          {
+            "from": "gw",
+            "to": "s1",
+            "label": "GET",
+            "type": "api"
+          },
+          {
+            "from": "gw",
+            "to": "s2",
+            "label": "GET",
+            "type": "api"
+          },
+          {
+            "from": "s1",
+            "to": "d1",
+            "label": "lecture",
+            "type": "api"
+          },
+          {
+            "from": "s2",
+            "to": "d2",
+            "label": "lecture",
+            "type": "api"
+          }
+        ],
+        "transverse": [
+          "Aucun CDN HTML dans le parcours natif",
+          "PKCE, secure storage, gestion des versions anciennes"
+        ]
+      }
+    },
+    {
+      "id": "serverless-direct",
+      "title": "Serverless simple : web + API Functions",
+      "subtitle": "Serverless · fonctions directes",
+      "tags": [
+        "direct",
+        "serverless"
+      ],
+      "rendering": "CSR / SSG",
+      "hosting": "CDN + API Gateway + Functions",
+      "complexity": "Modérée",
+      "auth": "OAuth public PKCE ou accès anonyme",
+      "summary": "Un site web statique appelle directement des fonctions HTTP exposées via une gateway ; aucun BFF dédié n'est nécessaire.",
+      "problem": "Quelques opérations dynamiques doivent compléter un front statique sans construire une application serveur complète.",
+      "when": "MVP, formulaire ou portail léger avec opérations bornées et faible agrégation.",
+      "benefits": [
+        "Distribution statique rapide et fonctions facturées à l'usage selon fournisseur.",
+        "Chaque endpoint peut évoluer de façon indépendante.",
+        "Peu de services permanents à administrer."
+      ],
+      "tradeoffs": [
+        "Cold starts et limites de durée d'exécution.",
+        "Prolifération de petites fonctions si le domaine grandit.",
+        "Gestion des accès et des quotas dès la première fonction."
+      ],
+      "security": "Une fonction HTTP n'est pas automatiquement un BFF : authentifier le client, valider les droits côté fonction et ne jamais mettre de secret applicatif dans le JS.",
+      "operations": "Surveiller exécutions, quotas, durée, erreurs, démarrages à froid et coûts.",
+      "diagram": [
+        [
+          "Web SPA",
+          "CDN",
+          "client"
+        ],
+        [
+          "API Gateway",
+          "HTTPS",
+          "api"
+        ],
+        [
+          "Functions HTTP",
+          "endpoints",
+          "service"
+        ],
+        [
+          "DB managée",
+          "données",
+          "data"
+        ]
+      ],
+      "refs": [
+        "aws",
+        "azure",
+        "functions"
+      ],
+      "simple": "Un site statique appelle des petites fonctions HTTP à la demande. Ici, ces fonctions exposent directement des opérations, sans prétendre former un BFF dédié.",
+      "audience": [
+        "web",
+        "mobile"
+      ],
+      "audienceDetail": "Web/PWA ; mobile natif possible sur les mêmes APIs, mais sans utiliser le site statique.",
+      "mobileNote": "Une app mobile native appelle directement la gateway ; elle ne télécharge pas la SPA.",
+      "preview": [
+        "Web / Mobile",
+        "Gateway",
+        "Functions HTTP",
+        "DB managée",
+        "Logs"
+      ],
+      "steps": [
+        "Le CDN distribue l'interface au navigateur web.",
+        "Le navigateur ou le mobile appelle un endpoint HTTP de la gateway.",
+        "La gateway filtre et authentifie la requête.",
+        "Une fonction serverless réalise une opération simple.",
+        "La fonction lit/écrit une base managée et répond au client."
+      ],
+      "implementation": [
+        "Infrastructure as Code, versions et déploiement par environnement.",
+        "Gateway/WAF, IAM à privilèges minimaux et idempotence sur écritures.",
+        "Concevoir l'accès à la base pour les montées en concurrence."
+      ],
+      "example": "Portail de demandes ou formulaire métier avec quelques opérations backend.",
+      "serverless": {
+        "trigger": "HTTP via API Gateway",
+        "compute": "Fonctions stateless par opération (sans orchestration BFF)",
+        "state": "DB managée et stockage objet si besoin",
+        "scale": "À la demande, dans les limites de concurrence",
+        "watch": "Cold start, durée, quotas, coût par endpoint",
+        "tradeoff": "Simple à démarrer ; pas adapté aux longs traitements ou à l'agrégation intensive sans évolution."
+      },
+      "architecture": {
+        "stages": [
+          {
+            "label": "Clients",
+            "nodes": [
+              {
+                "id": "web",
+                "name": "SPA web (CDN)",
+                "detail": "HTML / JS",
+                "kind": "client"
+              },
+              {
+                "id": "mobile",
+                "name": "App mobile native",
+                "detail": "optionnelle",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Livraison & API",
+            "nodes": [
+              {
+                "id": "cdn",
+                "name": "CDN",
+                "detail": "ressources du site",
+                "kind": "cdn"
+              },
+              {
+                "id": "gw",
+                "name": "Gateway HTTP",
+                "detail": "auth / quotas",
+                "kind": "gateway"
+              }
+            ]
+          },
+          {
+            "label": "Fonctions",
+            "nodes": [
+              {
+                "id": "f1",
+                "name": "Function lecture",
+                "detail": "GET /items",
+                "kind": "service"
+              },
+              {
+                "id": "f2",
+                "name": "Function action",
+                "detail": "POST /items",
+                "kind": "service"
+              }
+            ]
+          },
+          {
+            "label": "Persistance",
+            "nodes": [
+              {
+                "id": "db",
+                "name": "DB serverless",
+                "detail": "données produit",
+                "kind": "data"
+              },
+              {
+                "id": "blob",
+                "name": "Stockage objet",
+                "detail": "documents",
+                "kind": "data"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "web",
+            "to": "cdn",
+            "label": "assets",
+            "type": "asset"
+          },
+          {
+            "from": "web",
+            "to": "gw",
+            "label": "HTTPS",
+            "type": "api"
+          },
+          {
+            "from": "mobile",
+            "to": "gw",
+            "label": "HTTPS",
+            "type": "api"
+          },
+          {
+            "from": "gw",
+            "to": "f1",
+            "label": "GET",
+            "type": "api"
+          },
+          {
+            "from": "gw",
+            "to": "f2",
+            "label": "POST",
+            "type": "api"
+          },
+          {
+            "from": "f1",
+            "to": "db",
+            "label": "lecture",
+            "type": "api"
+          },
+          {
+            "from": "f2",
+            "to": "db",
+            "label": "écriture",
+            "type": "api"
+          },
+          {
+            "from": "f2",
+            "to": "blob",
+            "label": "fichier",
+            "type": "api"
+          }
+        ],
+        "transverse": [
+          "Fonctions ≠ BFF automatiquement",
+          "Sécurité et droits vérifiés dans chaque opération"
+        ]
+      }
+    },
+    {
+      "id": "serverless-async",
+      "title": "Serverless événementiel : tâches longues",
+      "subtitle": "Serverless · file & workers",
+      "tags": [
+        "serverless"
+      ],
+      "rendering": "CSR / mobile",
+      "hosting": "CDN + Gateway + Queue + Functions",
+      "complexity": "Élevée",
+      "auth": "Session ou OAuth selon canal",
+      "summary": "Le front lance une commande rapide, puis une file d'attente déclenche des workers serverless. Le résultat est consulté plus tard.",
+      "problem": "Certaines actions dépassent le temps d'une réponse HTTP classique : génération de documents, médias, imports ou calculs.",
+      "when": "Travaux longs, pics de charge ou besoin de découplage et de résilience.",
+      "benefits": [
+        "L'API répond sans attendre la fin du traitement.",
+        "La file absorbe les pics d'activité et découple producteurs et workers.",
+        "Gestion des retries et files d'erreur possible."
+      ],
+      "tradeoffs": [
+        "Cohérence éventuelle et nécessité d'un statut de traitement.",
+        "Idempotence, DLQ, reprises et duplication d'événements à maîtriser.",
+        "Observabilité de bout en bout plus complexe."
+      ],
+      "security": "Contrôler qui peut démarrer une tâche et lire son résultat ; ne jamais exposer arbitrairement des URLs de documents privés.",
+      "operations": "Mesurer l'âge des messages, la profondeur de file, les retries, DLQ, durées workers et temps d'attente utilisateur.",
+      "diagram": [
+        [
+          "Web / Mobile",
+          "commande",
+          "client"
+        ],
+        [
+          "API Function",
+          "202 Accepted",
+          "bff"
+        ],
+        [
+          "Queue",
+          "asynchrone",
+          "event"
+        ],
+        [
+          "Worker Function",
+          "traitement",
+          "service"
+        ],
+        [
+          "Stockage",
+          "résultat",
+          "data"
+        ]
+      ],
+      "refs": [
+        "aws",
+        "lambda",
+        "functions"
+      ],
+      "simple": "L'utilisateur lance un traitement, reçoit immédiatement un numéro de suivi, puis récupère le résultat quand un worker a terminé.",
+      "audience": [
+        "web",
+        "mobile"
+      ],
+      "audienceDetail": "Web/PWA et mobile : même traitement asynchrone, écrans de suivi adaptés à chaque canal.",
+      "mobileNote": "Mobile : privilégier une consultation de statut ou une notification push, pas une connexion HTTP maintenue longtemps.",
+      "preview": [
+        "Web / Mobile",
+        "API commande",
+        "Queue",
+        "Worker",
+        "Statut / résultat"
+      ],
+      "steps": [
+        "Le client POSTe une demande via la gateway.",
+        "Une fonction vérifie les droits, crée une tâche et retourne 202 + identifiant.",
+        "Un message est écrit dans une file durable.",
+        "Un worker serverless traite la tâche, avec retries contrôlés et DLQ.",
+        "Le résultat et le statut sont enregistrés ; le client les consulte ou reçoit une notification."
+      ],
+      "implementation": [
+        "Contrat d'API 202 + identifiant et endpoint de suivi.",
+        "Message idempotent, clés de corrélation, reprises et DLQ.",
+        "Timeouts, limites de taille, coût des retries et statut d'avancement.",
+        "Notifications temps réel éventuelles, sans obligation de WebSocket."
+      ],
+      "example": "Génération de rapport PDF d'architecture ou import volumineux avec suivi d'avancement.",
+      "serverless": {
+        "trigger": "HTTP pour lancer, messages de file pour exécuter",
+        "compute": "Function API courte + workers asynchrones",
+        "state": "Queue durable, base de suivi, stockage objet, DLQ",
+        "scale": "Workers selon profondeur de file, limites de concurrence et backpressure",
+        "watch": "Âge des messages, retries, DLQ, coût/traitement et délai total",
+        "tradeoff": "Fiable pour du long et découplé ; la contrepartie est la cohérence éventuelle et une UX de suivi."
+      },
+      "architecture": {
+        "stages": [
+          {
+            "label": "Clients",
+            "nodes": [
+              {
+                "id": "web",
+                "name": "Web / PWA",
+                "detail": "lancer + suivre",
+                "kind": "client"
+              },
+              {
+                "id": "mobile",
+                "name": "Application mobile",
+                "detail": "lancer + notifier",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Commande",
+            "nodes": [
+              {
+                "id": "gateway",
+                "name": "API Gateway",
+                "detail": "auth / quotas",
+                "kind": "gateway"
+              }
+            ]
+          },
+          {
+            "label": "Entrée HTTP",
+            "nodes": [
+              {
+                "id": "fn",
+                "name": "Function commande",
+                "detail": "valide + retourne 202",
+                "kind": "bff"
+              },
+              {
+                "id": "status",
+                "name": "DB des tâches",
+                "detail": "id / état",
+                "kind": "data"
+              }
+            ]
+          },
+          {
+            "label": "Asynchrone",
+            "nodes": [
+              {
+                "id": "queue",
+                "name": "File de messages",
+                "detail": "retry / délai",
+                "kind": "event"
+              }
+            ]
+          },
+          {
+            "label": "Traitement",
+            "nodes": [
+              {
+                "id": "worker",
+                "name": "Worker Function",
+                "detail": "traitement métier",
+                "kind": "service"
+              },
+              {
+                "id": "dlq",
+                "name": "Dead-letter queue",
+                "detail": "messages en échec",
+                "kind": "event"
+              }
+            ]
+          },
+          {
+            "label": "Résultat",
+            "nodes": [
+              {
+                "id": "store",
+                "name": "Stockage objet",
+                "detail": "fichier / résultat",
+                "kind": "data"
+              },
+              {
+                "id": "db",
+                "name": "Base métier",
+                "detail": "statut final",
+                "kind": "data"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "web",
+            "to": "gateway",
+            "label": "POST",
+            "type": "api"
+          },
+          {
+            "from": "mobile",
+            "to": "gateway",
+            "label": "POST",
+            "type": "api"
+          },
+          {
+            "from": "gateway",
+            "to": "fn",
+            "label": "HTTP",
+            "type": "api"
+          },
+          {
+            "from": "fn",
+            "to": "status",
+            "label": "état",
+            "type": "api"
+          },
+          {
+            "from": "fn",
+            "to": "queue",
+            "label": "enfile",
+            "type": "async"
+          },
+          {
+            "from": "queue",
+            "to": "worker",
+            "label": "déclenche",
+            "type": "async"
+          },
+          {
+            "from": "queue",
+            "to": "dlq",
+            "label": "échec",
+            "type": "async"
+          },
+          {
+            "from": "worker",
+            "to": "store",
+            "label": "stocke",
+            "type": "api"
+          },
+          {
+            "from": "worker",
+            "to": "db",
+            "label": "statut",
+            "type": "api"
+          }
+        ],
+        "transverse": [
+          "Retour HTTP 202 avant fin du travail",
+          "Idempotence, DLQ et supervision de l'âge de la file"
+        ]
+      }
+    },
+    {
+      "id": "serverless-workflow",
+      "title": "Serverless orchestré : workflow métier",
+      "subtitle": "Serverless · orchestrateur",
+      "tags": [
+        "serverless"
+      ],
+      "rendering": "CSR / mobile",
+      "hosting": "API + orchestration + fonctions",
+      "complexity": "Élevée",
+      "auth": "Session ou OAuth selon canal",
+      "summary": "Un workflow managé coordonne plusieurs fonctions serverless, gère les reprises et suit la progression d'un processus métier multi-étapes.",
+      "problem": "Un traitement comporte plusieurs étapes, des dépendances, attentes ou compensations qu'une seule fonction ne devrait pas piloter.",
+      "when": "Traitements multi-étapes, longues attentes ou besoin de traçabilité des transitions.",
+      "benefits": [
+        "Étapes visibles, reprises et échecs isolés.",
+        "Fonctions spécialisées, plus courtes et testables.",
+        "Orchestrateur capable de porter timers et conditions selon la plateforme."
+      ],
+      "tradeoffs": [
+        "Dépendance au moteur de workflow et limites du plan.",
+        "Conception des compensations et idempotence non triviale.",
+        "Tarification par transitions/exécutions à surveiller."
+      ],
+      "security": "Contrôler l'identité de l'initiateur et chaque tâche ; secrets côté service et droits minimaux.",
+      "operations": "Observer exécutions, transitions, timeout de chaque étape, compensations, coûts et erreurs.",
+      "diagram": [
+        [
+          "Web / Mobile",
+          "demande",
+          "client"
+        ],
+        [
+          "API Function",
+          "démarre",
+          "bff"
+        ],
+        [
+          "Orchestrateur",
+          "états",
+          "event"
+        ],
+        [
+          "Functions A/B",
+          "étapes",
+          "service"
+        ],
+        [
+          "DB / Object store",
+          "résultats",
+          "data"
+        ]
+      ],
+      "refs": [
+        "lambda",
+        "functions",
+        "azure"
+      ],
+      "simple": "Une commande déclenche un parcours métier à plusieurs étapes que pilote un orchestrateur : il sait où en est le traitement et quoi reprendre en cas d'erreur.",
+      "audience": [
+        "web",
+        "mobile"
+      ],
+      "audienceDetail": "Web/PWA et mobile utilisent les mêmes APIs de commande et de statut.",
+      "mobileNote": "Même logique de suivi que pour les tâches asynchrones : l'app ne reste pas connectée jusqu'à la fin.",
+      "preview": [
+        "Web / Mobile",
+        "API commande",
+        "Orchestrateur",
+        "Fonctions A/B",
+        "État / Résultat"
+      ],
+      "steps": [
+        "Un client demande un traitement via HTTPS.",
+        "Une fonction d'entrée valide la demande et démarre une exécution du workflow.",
+        "L'orchestrateur déclenche des fonctions successives ou parallèles.",
+        "Les étapes gèrent retries, temporisations et éventuellement compensations.",
+        "Le client suit l'état et reçoit le résultat à la fin."
+      ],
+      "implementation": [
+        "Définition versionnée du workflow dans le dépôt (IaC).",
+        "Contrats d'étape et clés d'idempotence.",
+        "Politique de reprise, état persistant et compensation des effets externes.",
+        "Observabilité par instance et coût des transitions."
+      ],
+      "example": "Parcours de souscription avec vérifications, documents et validations externes.",
+      "serverless": {
+        "trigger": "Requête HTTP / événement",
+        "compute": "Functions par étape + orchestrateur managé",
+        "state": "État du workflow durable + services de données",
+        "scale": "Concurrence des étapes et limites de l'orchestrateur",
+        "watch": "Exécutions en échec, transitions, coûts et délais de bout en bout",
+        "tradeoff": "Meilleure visibilité et reprise, au prix d'une orchestration additionnelle."
+      },
+      "architecture": {
+        "stages": [
+          {
+            "label": "Clients",
+            "nodes": [
+              {
+                "id": "web",
+                "name": "Web / PWA",
+                "detail": "démarre / consulte",
+                "kind": "client"
+              },
+              {
+                "id": "mobile",
+                "name": "App mobile",
+                "detail": "démarre / consulte",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Entrée",
+            "nodes": [
+              {
+                "id": "gateway",
+                "name": "API Gateway",
+                "detail": "HTTPS / autorisations",
+                "kind": "gateway"
+              }
+            ]
+          },
+          {
+            "label": "Commande",
+            "nodes": [
+              {
+                "id": "fn",
+                "name": "Function de départ",
+                "detail": "création d'exécution",
+                "kind": "bff"
+              }
+            ]
+          },
+          {
+            "label": "Orchestration",
+            "nodes": [
+              {
+                "id": "flow",
+                "name": "Workflow managé",
+                "detail": "état, délai, retries",
+                "kind": "event"
+              }
+            ]
+          },
+          {
+            "label": "Étapes métier",
+            "nodes": [
+              {
+                "id": "stepA",
+                "name": "Function contrôle",
+                "detail": "étape A",
+                "kind": "service"
+              },
+              {
+                "id": "stepB",
+                "name": "Function documents",
+                "detail": "étape B",
+                "kind": "service"
+              },
+              {
+                "id": "stepC",
+                "name": "Function notification",
+                "detail": "étape C",
+                "kind": "service"
+              }
+            ]
+          },
+          {
+            "label": "Persistance",
+            "nodes": [
+              {
+                "id": "db",
+                "name": "Base métier",
+                "detail": "état / résultat",
+                "kind": "data"
+              },
+              {
+                "id": "store",
+                "name": "Stockage objet",
+                "detail": "documents",
+                "kind": "data"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "web",
+            "to": "gateway",
+            "label": "HTTPS",
+            "type": "api"
+          },
+          {
+            "from": "mobile",
+            "to": "gateway",
+            "label": "HTTPS",
+            "type": "api"
+          },
+          {
+            "from": "gateway",
+            "to": "fn",
+            "label": "HTTP",
+            "type": "api"
+          },
+          {
+            "from": "fn",
+            "to": "flow",
+            "label": "start",
+            "type": "async"
+          },
+          {
+            "from": "flow",
+            "to": "stepA",
+            "label": "exécute",
+            "type": "async"
+          },
+          {
+            "from": "flow",
+            "to": "stepB",
+            "label": "exécute",
+            "type": "async"
+          },
+          {
+            "from": "flow",
+            "to": "stepC",
+            "label": "exécute",
+            "type": "async"
+          },
+          {
+            "from": "stepA",
+            "to": "db",
+            "label": "statut",
+            "type": "api"
+          },
+          {
+            "from": "stepB",
+            "to": "store",
+            "label": "document",
+            "type": "api"
+          },
+          {
+            "from": "stepC",
+            "to": "db",
+            "label": "journal",
+            "type": "api"
+          }
+        ],
+        "transverse": [
+          "Workflow durable, timeouts, retries et compensations",
+          "Retour au client par API de statut et/ou notification"
+        ]
+      }
+    }
+  ],
+  "glossary": [
+    {
+      "term": "SPA",
+      "full": "Single-Page Application",
+      "simple": "Application web dont la navigation et les écrans sont principalement gérés dans le navigateur sans recharger toute la page.",
+      "example": "Interface React ou Vue interactive."
+    },
+    {
+      "term": "CSR",
+      "full": "Client-Side Rendering — rendu côté client",
+      "simple": "Le navigateur construit l'affichage avec JavaScript après avoir chargé le site.",
+      "example": "Tableau de bord très interactif."
+    },
+    {
+      "term": "SSR",
+      "full": "Server-Side Rendering — rendu côté serveur",
+      "simple": "Un serveur prépare le HTML de la page au moment où elle est demandée, avant de l'envoyer au navigateur.",
+      "example": "Page personnalisée qui doit être visible rapidement."
+    },
+    {
+      "term": "SSG",
+      "full": "Static Site Generation — génération de site statique",
+      "simple": "Les pages HTML sont générées à la construction du site, puis envoyées telles quelles par un CDN.",
+      "example": "Documentation, catalogue, site de contenu."
+    },
+    {
+      "term": "BFF",
+      "full": "Backend For Frontend — backend dédié à une interface",
+      "simple": "Un petit backend qui rassemble, sécurise et adapte les données pour un front précis : web, mobile, etc.",
+      "example": "BFF REST pour les écrans web, distinct de l'API métier."
+    },
+    {
+      "term": "REST",
+      "full": "Representational State Transfer",
+      "simple": "Style d'API fondé sur des ressources et des opérations HTTP comme GET, POST ou PATCH.",
+      "example": "GET /dossiers/42."
+    },
+    {
+      "term": "GraphQL",
+      "full": "Langage de requête d'API",
+      "simple": "Le client demande précisément les champs voulus dans un schéma typé ; ce n'est pas automatiquement un BFF.",
+      "example": "Récupérer nom, statut et trois commandes en une opération."
+    },
+    {
+      "term": "CDN",
+      "full": "Content Delivery Network",
+      "simple": "Réseau de serveurs qui distribue les fichiers web proches des utilisateurs et peut les mettre en cache.",
+      "example": "Livrer du JavaScript et des pages HTML statiques."
+    },
+    {
+      "term": "API Gateway",
+      "full": "Passerelle d'API",
+      "simple": "Point d'entrée commun pour les requêtes API : routage, quotas et parfois vérifications de sécurité ; pas un BFF à elle seule.",
+      "example": "Distribuer /api/web et /api/mobile vers deux BFF."
+    },
+    {
+      "term": "Serverless",
+      "full": "Exécution gérée à la demande",
+      "simple": "Le fournisseur gère l'infrastructure d'exécution ; le code tourne en fonctions ou services managés. Il y a toujours des serveurs, mais on ne les exploite pas directement.",
+      "example": "API Gateway + Function + base managée."
+    },
+    {
+      "term": "Cold start",
+      "full": "Démarrage à froid",
+      "simple": "Latence supplémentaire lorsque la plateforme doit démarrer une nouvelle instance pour exécuter une fonction.",
+      "example": "Première requête après une période d'inactivité."
+    },
+    {
+      "term": "Edge",
+      "full": "Exécution à la périphérie du réseau",
+      "simple": "Calcul réalisé dans des points de présence proches des utilisateurs, avec des limites propres au fournisseur.",
+      "example": "Rendu HTML régional avant accès à une API centrale."
+    },
+    {
+      "term": "OAuth / PKCE",
+      "full": "Délégation d'accès et protection de l'échange de code",
+      "simple": "PKCE protège la connexion des applications publiques web ou mobiles qui ne peuvent pas conserver un secret client.",
+      "example": "Connexion d'une SPA ou d'une app iOS."
+    },
+    {
+      "term": "Queue / DLQ",
+      "full": "File de messages / file d'échec",
+      "simple": "Une file reçoit les tâches asynchrones ; la DLQ garde celles qui échouent après les tentatives de reprise.",
+      "example": "Génération d'un rapport PDF en arrière-plan."
     }
   ]
 }
