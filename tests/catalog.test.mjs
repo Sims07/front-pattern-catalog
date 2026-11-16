@@ -51,7 +51,7 @@ test('site autonome, accessible, manifest et cache hors ligne cohérents', () =>
   assert.match(html, /id="comparison"/);
   assert.match(html, /<dialog/);
   assert.match(html, /fetch\("\.\/patterns\.json"/);
-  assert.match(sw, /front-patterns-v5/);
+  assert.match(sw, /front-patterns-v6/);
   for (const path of ['index.html','patterns.json','diagrams.js','decision-tree.html','decision-tree.js','decision-tree.json','pattern.html','pattern-detail.js','pattern-detail.css','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png']) {
     assert.match(sw, new RegExp(path.replaceAll('.', '\\.')));
   }
@@ -224,6 +224,9 @@ test('arbre intégral : tous les nœuds, les issues et liaisons de retour sont a
   assert.match(h,/id="treePanel"/);
   assert.match(h,/data-jump-to="tree-cms"/);
   assert.match(js,/function drawNode\(/);
+  assert.match(js,/data-depth/);
+  assert.match(js,/tree-option-label/);
+  assert.match(h,/Arbre descendant/);
   assert.match(js,/function readPath\(/);
   assert.match(js,/tree\.nodes\[nodeId\]/);
   assert.match(js,/data-choice-path/);
