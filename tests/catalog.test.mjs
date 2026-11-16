@@ -256,8 +256,7 @@ test('PWA multipage : cache offline spécifique aux fiches et à l’arbre', () 
 });
 
 test('aperçu des 17 cartes : 3 repères courts et une proposition de valeur', () => {
-  const vm = requireVm();
-  const draw=vm.PatternDiagrams;
+  const draw = requireVm();
   for(const p of catalog.patterns) {
     const teaser=p.cardPreview;
     assert.equal(teaser.steps.length,3,p.id + ': les cartes doivent avoir exactement 3 repères');
