@@ -23,7 +23,7 @@ Catalogue pédagogique de **17 architectures frontend**, pour architectes soluti
 - Comparer 2–3 patterns ; copier l'ADR Markdown et les fiches avec étapes et architecture.
 - Assistant d'orientation indicatif : canal web/mobile, agrégation d'APIs, identité et hébergement.
 
-Une **page dédiée à l'arbre de décision intégral** (`decision-tree.html`) affiche **toutes les questions, leurs branches et les résultats** dans une lecture **verticale**, du haut vers le bas, avec des cartes de largeur constante à chaque profondeur (sans indentation cumulative), y compris les alternatives non choisies. Les décisions retenues sont surlignées, conservées dans le panneau latéral et dans l'URL (`#path=...`) : changer une réponse ne masque pas le reste de l'arbre. Les fiches s'ouvrent sur une page indépendante et un retour depuis la fiche conserve le chemin (`treePath`). L'arbre peut aussi ouvrir directement une comparaison.
+Une **page dédiée à l'arbre de décision intégral** (`decision-tree.html`) affiche **toutes les questions, leurs branches et les résultats** dans un **graphe panoramique** avec nœuds alignés par niveau, liaisons visibles, zoom, déplacement et mini-carte, y compris les alternatives non choisies. Les décisions retenues sont surlignées, conservées dans le panneau latéral et dans l'URL (`#path=...`) : changer une réponse ne masque pas le reste de l'arbre. Les fiches s'ouvrent sur une page indépendante et un retour depuis la fiche conserve le chemin (`treePath`). L'arbre peut aussi ouvrir directement une comparaison.
 
 La **comparaison** est accessible dans une barre fixe dès la première sélection. À deux ou trois architectures, le bouton « Comparer les architectures » ouvre une fenêtre avec un tableau et un export ADR ; il n'est plus nécessaire de descendre en bas du catalogue.
 
@@ -33,7 +33,7 @@ Les diagrammes montrent des architectures *illustratives*, pas une obligation d'
 
 - Site statique en HTML, CSS, JS ; aucune compilation ni dépendance runtime.
 - `patterns.json` : textes, références, canaux, architecture à étages `stages/nodes/links`, glossaire.
-- `decision-tree.html`, `decision-tree.js` et `decision-tree.json` : arbre intégral interactif sans masquer les anciennes branches, chemin conservé dans l'URL (sans stockage utilisateur).
+- `decision-tree.html`, `decision-tree.js`, `decision-map.css` et `decision-tree.json` : graphe de décisions interactif à niveaux alignés, exploration par zoom/déplacement, aperçu général et chemin conservé dans l'URL (sans stockage utilisateur).
 - `pattern.html`, `pattern-detail.js`, `pattern-detail.css` : fiches d'architecture standalone, sommaire, sections de mise en œuvre et navigation précédente/suivante.
 - `diagrams.js` : mini-flux de carte sans scroll (3 étapes représentatives, jamais un graphe complet réduit) et moteur SVG autonome pour les fiches (flèches colorées par type, branches, niveaux et protocole).
 - PWA : cache versionné `sw.js` avec **pages séparées pour l'accueil, l'arbre et les fiches**, `manifest.webmanifest` et icônes. La navigation hors ligne affiche la bonne page au lieu de substituer systématiquement l'accueil.

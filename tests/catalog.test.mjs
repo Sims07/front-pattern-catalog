@@ -51,7 +51,7 @@ test('site autonome, accessible, manifest et cache hors ligne cohérents', () =>
   assert.match(html, /id="comparison"/);
   assert.match(html, /<dialog/);
   assert.match(html, /fetch\("\.\/patterns\.json"/);
-  assert.match(sw, /front-patterns-v6/);
+  assert.match(sw, /front-patterns-v7/);
   for (const path of ['index.html','patterns.json','diagrams.js','decision-tree.html','decision-tree.js','decision-tree.json','pattern.html','pattern-detail.js','pattern-detail.css','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png']) {
     assert.match(sw, new RegExp(path.replaceAll('.', '\\.')));
   }
@@ -210,7 +210,7 @@ test('les ressources et liens vers arbre/compare sont intégrés au PWA', () => 
   assert.match(d,/decision-tree\.js/);
   assert.match(js,/index\.html#compare=/);
   assert.doesNotThrow(()=>new Function(js));
-  for(const path of ['decision-tree.html','decision-tree.js','decision-tree.json']){
+  for(const path of ['decision-tree.html','decision-tree.js','decision-tree.json','decision-map.css']){
     assert.ok(sw.includes('./'+path),path+' absent cache PWA');
   }
 });
@@ -225,8 +225,14 @@ test('arbre intégral : tous les nœuds, les issues et liaisons de retour sont a
   assert.match(h,/data-jump-to="tree-cms"/);
   assert.match(js,/function drawNode\(/);
   assert.match(js,/data-depth/);
-  assert.match(js,/tree-option-label/);
-  assert.match(h,/Arbre descendant/);
+  assert.match(js,/graph-link/);
+  assert.match(h,/Graphe de décision interactif/);
+  assert.match(h,/id="graphViewport"/);
+  assert.match(h,/id="zoomIn"/);
+  assert.match(h,/id="fitGraph"/);
+  assert.match(h,/id="mapOverview"/);
+  assert.doesNotMatch(h,/Arbre de décision vertical|Arbre vertical/);
+  assert.match(read('decision-map.css'),/graph-viewport/);
   assert.match(js,/function readPath\(/);
   assert.match(js,/tree\.nodes\[nodeId\]/);
   assert.match(js,/data-choice-path/);
@@ -249,7 +255,7 @@ test('fiches d’architecture dédiées, sans dialogue modal pour le détail', (
 });
 test('PWA multipage : cache offline spécifique aux fiches et à l’arbre', () => {
   const sw=read('sw.js');
-  for(const filename of ['pattern.html','pattern-detail.js','pattern-detail.css','decision-tree.html']){
+  for(const filename of ['pattern.html','pattern-detail.js','pattern-detail.css','decision-tree.html','decision-map.css']){
     assert.ok(sw.includes("'./"+filename+"'"),filename+' absent du précache');
   }
   assert.match(sw,/filename === 'pattern\.html'/);
@@ -280,3 +286,21 @@ function requireVm(){
   const vm=requireVm.vm || (()=>{ const mod = {exports:{}}; const factory=new Function('module','globalThis',read('diagrams.js')); factory(mod,{}); return mod.exports; })();
   return vm;
 }
+
+test('graphe de décision : niveaux, zoom, mini-carte et choix persistants',()=>{
+ const html=read('decision-tree.html'),css=read('decision-map.css'),js=read('decision-tree.js');
+ assert.match(html,/id="graphViewport"/);
+ assert.match(html,/id="mapOverview"/);
+ assert.match(html,/id="focusStart"/);
+ assert.match(html,/id="focusPath"/);
+ assert.match(js,/function buildGraph\(/);
+ assert.match(js,/function fitGraph\(/);
+ assert.match(js,/function focusBranch\(/);
+ assert.match(js,/function readPath\(/);
+ assert.match(js,/window\.addEventListener\('hashchange'/);
+ assert.match(js,/pointermove/);
+ assert.match(js,/wheel/);
+ assert.match(css,/\.graph-link\.is-active/);
+ assert.match(css,/touch-action:none/);
+ assert.doesNotMatch(html,/vertical/i);
+});
