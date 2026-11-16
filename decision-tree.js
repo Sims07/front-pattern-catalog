@@ -9,7 +9,7 @@
  var result=document.getElementById('decisionResult');
  var overview=document.getElementById('mapOverview');
  var ctx=overview.getContext('2d');
- var NODE_W=246,NODE_H=94,STEP_X=283,STEP_Y=158;
+ var NODE_W=246,NODE_H=126,STEP_X=283,STEP_Y=186;
  var MIN_SCALE=.075,MAX_SCALE=1.8;
  var scale=1,offsetX=0,offsetY=0,animFrame=0;
  var pointers=new Map(),panStart=null,pinchDistance=0,lastDrag=0,expanded=false;
