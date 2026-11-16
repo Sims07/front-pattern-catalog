@@ -85,7 +85,7 @@ test('comparaison : barre persistante et choix conservés à travers les filtres
  await page.close();
 });
 
-test('arbre intégral : toutes les branches restent visibles quand le choix avance',async()=>{
+test('graphe complet : le chemin est conservé sans masquer les branches',async()=>{
  const page=await browser.newPage({viewport:{width:1280,height:900}});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(url+'decision-tree.html',{waitUntil:'networkidle'});
@@ -97,15 +97,17 @@ test('arbre intégral : toutes les branches restent visibles quand le choix avan
  assert.equal(await page.locator('#tree-cms').count(),1);
  assert.equal(await page.locator('#tree-app').count(),1);
  assert.equal(await page.locator('#tree-async').count(),1);
+ assert.ok(await page.locator('.graph-link').count()>80);
  await page.locator('[data-select-path="0"]').click();
  await page.locator('[data-select-path="0.1"]').click();
  await page.locator('[data-select-path="0.1.1"]').click();
  assert.equal(await page.locator('.tree-question').count(),initialQuestions);
  assert.equal(await page.locator('.tree-leaf').count(),initialOutcomes);
  assert.equal(await page.locator('.tree-choice.is-chosen').count(),3);
+ assert.equal(await page.locator('.graph-link.is-active').count(),6);
  assert.equal(await page.locator('#decisionResult .result-links li').count(),2);
  assert.match(page.url(),/#path=0\.1\.1/);
- await page.screenshot({path:'artifacts/decision-tree-entire-selected.png',fullPage:false});
+ await page.screenshot({path:'artifacts/decision-graph-selected-desktop.png'});
  await page.reload({waitUntil:'networkidle'});
  await page.locator('[data-select-path="0"]').waitFor();
  assert.equal(await page.locator('.tree-choice.is-chosen').count(),3);
@@ -122,10 +124,12 @@ test('arbre intégral : toutes les branches restent visibles quand le choix avan
  await page.close();
 });
 
-test('arbre → fiche CMS → retour au parcours puis comparaison directe',async()=>{
+test('graphe → fiche CMS → retour au parcours puis comparaison directe',async()=>{
  const page=await browser.newPage({viewport:{width:1280,height:900}});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(url+'decision-tree.html',{waitUntil:'networkidle'});
+ await page.locator('[data-select-path="0"]').click();
+ await page.locator('[data-select-path="0.1"]').click();
  await page.locator('[data-select-path="0.1.1"]').click();
  const result=page.locator('#decisionResult');
  assert.equal(await result.locator('.result-links li').count(),2);
@@ -203,34 +207,50 @@ test('cartes : aucun défilement interne du teaser sur toutes les tailles et tou
  await page.close();
 });
 
-test('arbre vertical : largeur constante, sans débordement sur mobile et desktop',async()=>{
+test('graphe par niveaux : alignement, zoom, déplacement et responsive',async()=>{
  for(const width of [320,390,768,1280]){
   const page=await browser.newPage({viewport:{width,height:900}});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(url+'decision-tree.html',{waitUntil:'networkidle'});
-  await page.locator('[data-depth="3"]').first().waitFor();
+  await page.locator('[data-depth="6"]').first().waitFor();
   const layout=await page.evaluate(()=>{
-   const root=document.querySelector('.tree-root-head').getBoundingClientRect();
-   const nested=[...document.querySelectorAll('.tree-question[data-depth]')].filter(el=>Number(el.dataset.depth)>=3);
-   const heads=nested.map(el=>el.querySelector('.tree-question-head').getBoundingClientRect());
+   const levels=new Map();
+   document.querySelectorAll('.graph-node[data-depth]').forEach(el=>{
+    const depth=Number(el.dataset.depth),top=Number.parseFloat(el.style.top);
+    if(!levels.has(depth))levels.set(depth,new Set());
+    levels.get(depth).add(top);
+   });
    return {
     overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,
-    direction:getComputedStyle(document.querySelector('.tree-branches')).flexDirection,
-    minRatio:Math.min(...heads.map(r=>r.width/root.width)),
-    fullQuestions:document.querySelectorAll('.tree-question').length,
-    visibleChoices:[...document.querySelectorAll('.tree-choice')].every(el=>getComputedStyle(el).display!=='none')
+    aligned:[...levels.values()].every(row=>row.size===1),
+    questions:document.querySelectorAll('.tree-question').length,
+    leaves:document.querySelectorAll('.tree-leaf').length,
+    edges:document.querySelectorAll('.graph-link').length,
+    viewportWidth:document.querySelector('#graphViewport').clientWidth,
+    worldWidth:document.querySelector('#treePanel').offsetWidth
    };
   });
-  assert.ok(layout.overflow<=1,'débordement horizontal à '+width+'px : '+layout.overflow);
-  assert.equal(layout.direction,'column');
-  assert.ok(layout.minRatio>=0.82,'carte trop étroite à '+width+'px : '+layout.minRatio);
-  assert.ok(layout.fullQuestions>=13);
-  assert.ok(layout.visibleChoices);
+  assert.ok(layout.overflow<=1,'débordement de page '+width+'px : '+layout.overflow);
+  assert.equal(layout.aligned,true,'nœuds d’un même niveau non alignés');
+  assert.ok(layout.questions>=13&&layout.leaves>=20&&layout.edges>80);
+  assert.ok(layout.worldWidth>layout.viewportWidth,'la carte ne dispose pas de son espace panoramique');
+  const zoom=page.locator('#zoomValue');
+  const start=Number.parseInt(await zoom.innerText());
+  await page.locator('#zoomIn').click();
+  assert.ok(Number.parseInt(await zoom.innerText())>start,'le bouton zoom + ne fonctionne pas');
+  await page.locator('#fitGraph').click();
+  const fit=Number.parseInt(await zoom.innerText());
+  await page.locator('#focusStart').click();
+  assert.ok(Number.parseInt(await zoom.innerText())>fit,'le bouton Départ doit rendre les nœuds lisibles');
+  await page.locator('[data-select-path="0"]').click();
+  await page.locator('[data-select-path="0.1"]').click();
   await page.locator('[data-select-path="0.1.1"]').click();
   assert.equal(await page.locator('.tree-branch.is-on-path').count(),3);
-  assert.equal(await page.locator('.tree-choice.is-chosen').count(),3);
+  assert.equal(await page.locator('.graph-link.is-active').count(),6);
   assert.equal(await page.locator('.tree-leaf.is-chosen').count(),1);
-  if(width===390||width===1280)await page.screenshot({path:'artifacts/decision-tree-vertical-'+width+'.png'});
+  assert.equal(await page.locator('.tree-question').count(),layout.questions);
+  await page.locator('#focusPath').click();
+  if(width===390||width===1280)await page.screenshot({path:'artifacts/decision-graph-'+width+'.png'});
   assert.deepEqual(errors,[]);
   await page.close();
  }
