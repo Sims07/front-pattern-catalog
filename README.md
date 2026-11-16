@@ -24,6 +24,7 @@ Catalogue pédagogique de **17 architectures frontend**, pour architectes soluti
 - Assistant d'orientation indicatif : canal web/mobile, agrégation d'APIs, identité et hébergement.
 
 Une **page dédiée à l'arbre de décision intégral** (`decision-tree.html`) affiche **toutes les questions, leurs branches et les résultats** dans un **graphe panoramique** avec nœuds alignés par niveau, liaisons visibles, zoom, déplacement et mini-carte, y compris les alternatives non choisies. Les décisions retenues sont surlignées, conservées dans le panneau latéral et dans l'URL (`#path=...`) : changer une réponse ne masque pas le reste de l'arbre. Les fiches s'ouvrent sur une page indépendante et un retour depuis la fiche conserve le chemin (`treePath`). L'arbre peut aussi ouvrir directement une comparaison.
+Pour les graphes complexes, la vue de lecture s'ouvre à **100 %** pour conserver une typographie nette, avec des translations alignées sur les pixels physiques ; la vue d'ensemble permet de dézoomer volontairement. La carte utilise presque toute la largeur disponible (jusqu'à 2048 px), et le panneau **Mon parcours** peut être masqué pour libérer l'espace horizontal, sans perdre les décisions retenues.
 
 La **comparaison** est accessible dans une barre fixe dès la première sélection. À deux ou trois architectures, le bouton « Comparer les architectures » ouvre une fenêtre avec un tableau et un export ADR ; il n'est plus nécessaire de descendre en bas du catalogue.
 
