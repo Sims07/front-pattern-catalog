@@ -9,7 +9,7 @@
  var result=document.getElementById('decisionResult');
  var overview=document.getElementById('mapOverview');
  var ctx=overview.getContext('2d');
- var NODE_W=246,NODE_H=126,STEP_X=283,STEP_Y=186;
+ var NODE_W=268,NODE_H=138,STEP_X=298,STEP_Y=198;
  var MIN_SCALE=.075,MAX_SCALE=1.8;
  var scale=1,offsetX=0,offsetY=0,animFrame=0;
  var pointers=new Map(),panStart=null,pinchDistance=0,lastDrag=0,expanded=false;
@@ -178,9 +178,16 @@
  }
  function viewportSize(){return {w:viewport.clientWidth,h:viewport.clientHeight};}
  function setView(s,x,y,animate){
-  scale=clamp(s,MIN_SCALE,MAX_SCALE);offsetX=x;offsetY=y;
+  scale=clamp(s,MIN_SCALE,MAX_SCALE);
+  // À 100 %, ne jamais appliquer d'agrandissement rasterisé au texte.
+  if(Math.abs(scale-1)<.001)scale=1;
+  offsetX=x;offsetY=y;
+  // Alignement sur les pixels physiques : pas de décalage subpixel des glyphes.
+  var pixelRatio=window.devicePixelRatio||1;
+  var px=Math.round(offsetX*pixelRatio)/pixelRatio;
+  var py=Math.round(offsetY*pixelRatio)/pixelRatio;
   panel.classList.toggle('is-animating',Boolean(animate));
-  panel.style.transform='translate('+offsetX+'px,'+offsetY+'px) scale('+scale+')';
+  panel.style.transform='translate('+px+'px,'+py+'px)'+(scale===1?'':' scale('+scale+')');
   document.getElementById('zoomValue').textContent=Math.round(scale*100)+' %';
   drawOverview();
  }
@@ -194,9 +201,20 @@
   var s=clamp(Math.min((size.w-pad*2)/(maxX-minX),(size.h-pad*2)/(maxY-minY),maxZoom||1.1),MIN_SCALE,MAX_SCALE);
   setView(s,size.w/2-(minX+maxX)/2*s,size.h/2-(minY+maxY)/2*s,true);
  }
+ // Les modes de lecture se recentrent à l'échelle native (100 %) :
+ // une vue d'ensemble est disponible séparément pour voir tout le graphe.
+ function centerReadable(nodes){
+  if(!graph||!nodes.length)return;
+  var minX=Math.min.apply(null,nodes.map(function(n){return n.x-NODE_W/2;}));
+  var maxX=Math.max.apply(null,nodes.map(function(n){return n.x+NODE_W/2;}));
+  var minY=Math.min.apply(null,nodes.map(function(n){return n.y-NODE_H/2;}));
+  var maxY=Math.max.apply(null,nodes.map(function(n){return n.y+NODE_H/2;}));
+  var size=viewportSize();
+  setView(1,size.w/2-(minX+maxX)/2,size.h/2-(minY+maxY)/2,true);
+ }
  function focusStart(){
   if(!graph)return;
-  fitNodes(graph.nodes.filter(function(n){return n.depth<=2;}),1.02);
+  centerReadable(graph.nodes.filter(function(n){return n.depth<=2;}));
  }
  function fitGraph(){
   if(!graph)return;
@@ -206,15 +224,16 @@
   if(!graph)return;
   if(!selectedPath.length){focusStart();return;}
   var key=choiceKey(selectedPath),q=graph.byId.get('q:'+key);
-  if(q){fitNodes([q].concat(q.children),1.08);return;}
+  if(q){centerReadable([q].concat(q.children));return;}
   var leaf=graph.byId.get('l:'+key),choice=graph.byId.get('c:'+key);
-  fitNodes([choice,leaf].filter(Boolean),1.08);
+  centerReadable([choice,leaf].filter(Boolean));
  }
  function focusBranch(key){
   if(!graph)return;
   var choice=graph.byId.get('c:'+key),next=graph.byId.get('q:'+key)||graph.byId.get('l:'+key);
   if(!choice)return;
-  fitNodes([choice,next].concat(next&&next.children||[]).filter(Boolean),1.02);
+  // Un accès direct cible la réponse, sans éloigner le centre pour afficher ses descendants.
+  centerReadable([choice,next].filter(Boolean));
  }
  function zoomAt(factor,cx,cy){
   var old=scale,newScale=clamp(old*factor,MIN_SCALE,MAX_SCALE);
@@ -281,7 +300,7 @@
   if(Number.isInteger(index)&&index>=0){
    setSelection(selectedPath.slice(0,index),false);
    var key=choiceKey(selectedPath);
-   if(graph){var q=graph.byId.get('q:'+key);if(q)fitNodes([q].concat(q.children),1.06);else focusStart();}
+   if(graph){var q=graph.byId.get('q:'+key);if(q)centerReadable([q].concat(q.children));else focusStart();}
   }
  });
  document.getElementById('startOver').addEventListener('click',function(){if(tree){setSelection([],false);focusStart();}});
@@ -290,6 +309,17 @@
  document.getElementById('focusPath').addEventListener('click',focusPath);
  document.getElementById('zoomIn').addEventListener('click',function(){zoomStep(1);});
  document.getElementById('zoomOut').addEventListener('click',function(){zoomStep(-1);});
+ var layout=document.querySelector('.full-tree-layout');
+ var pathPanel=document.getElementById('pathPanel');
+ var togglePanel=document.getElementById('togglePathPanel');
+ togglePanel.addEventListener('click',function(){
+  var visible=togglePanel.getAttribute('aria-expanded')!=='true';
+  togglePanel.setAttribute('aria-expanded',String(visible));
+  togglePanel.textContent=visible?'Masquer le parcours':'Afficher le parcours';
+  pathPanel.hidden=!visible;
+  layout.classList.toggle('path-collapsed',!visible);
+  // Le ResizeObserver recentre la carte dans sa nouvelle largeur.
+ });
  document.querySelectorAll('[data-jump-to]').forEach(function(btn,i){
   btn.addEventListener('click',function(){focusBranch(String(i));});
  });

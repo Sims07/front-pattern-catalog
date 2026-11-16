@@ -51,7 +51,7 @@ test('site autonome, accessible, manifest et cache hors ligne cohérents', () =>
   assert.match(html, /id="comparison"/);
   assert.match(html, /<dialog/);
   assert.match(html, /fetch\("\.\/patterns\.json"/);
-  assert.match(sw, /front-patterns-v7/);
+  assert.match(sw, /front-patterns-v8/);
   for (const path of ['index.html','patterns.json','diagrams.js','decision-tree.html','decision-tree.js','decision-tree.json','pattern.html','pattern-detail.js','pattern-detail.css','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png']) {
     assert.match(sw, new RegExp(path.replaceAll('.', '\\.')));
   }
@@ -303,4 +303,21 @@ test('graphe de décision : niveaux, zoom, mini-carte et choix persistants',()=>
  assert.match(css,/\.graph-link\.is-active/);
  assert.match(css,/touch-action:none/);
  assert.doesNotMatch(html,/vertical/i);
+});
+
+
+test('interface du graphe : zone large et textes à échelle native',()=>{
+ const html=read('decision-tree.html'),css=read('decision-map.css'),js=read('decision-tree.js');
+ assert.match(html,/id="togglePathPanel"/);
+ assert.match(html,/aria-controls="pathPanel"/);
+ assert.match(css,/width:min\(2048px,calc\(100% - 40px\)\)/);
+ assert.match(css,/\.full-tree-layout\.path-collapsed/);
+ assert.match(css,/font-size:14px/);
+ assert.doesNotMatch(css,/will-change:transform/);
+ assert.match(js,/function centerReadable\(/);
+ assert.match(js,/setView\(1,/);
+ assert.match(js,/window\.devicePixelRatio/);
+ assert.match(js,/pathPanel\.hidden=!visible/);
+ assert.match(js,/togglePanel\.setAttribute\('aria-expanded'/);
+ assert.doesNotThrow(()=>new Function(js));
 });
