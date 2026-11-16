@@ -19,7 +19,7 @@ test('desktop : recherche, schéma vertical complet et parcours serverless', asy
   const response = await page.goto(url, { waitUntil: 'networkidle' });
   assert.equal(response.status(), 200);
   await page.locator('.pattern').first().waitFor();
-  assert.equal(await page.locator('.pattern').count(), 15);
+  assert.equal(await page.locator('.pattern').count(), 17);
   await page.getByRole('button', { name: 'Serverless', exact: true }).click();
   assert.ok(await page.locator('.pattern').count() >= 5);
   await page.locator('#pattern-serverless-async [data-open]').click();
