@@ -38,6 +38,9 @@
     lines.push('','## Sécurité',p.security,'','## Observabilité',p.operations);
     return lines.join('\n')+'\n';
   }
+  var treePath=new URLSearchParams(location.search).get('treePath');
+  var treeBack=treePath&&/^[0-9]+(?:\.[0-9]+)*$/.test(treePath)?'./decision-tree.html#path='+treePath:'./decision-tree.html';
+  var menuTree=document.getElementById('treeNavLink');if(menuTree)menuTree.href=treeBack;
   function render(p,patterns,sources){
     document.title=p.title+' · Front Pattern Catalog';
     document.getElementById('breadcrumbCurrent').textContent=p.title;
@@ -64,7 +67,7 @@
       '<span class="fact">Hébergement : '+esc(p.hosting)+'</span>'+
       '<span class="fact">Complexité : '+esc(p.complexity)+'</span></div>'+
       '<div class="controls"><a class="btn primary" href="./index.html#compare='+encodeURIComponent(p.id)+'">Ajouter à la comparaison ↗</a>'+
-      '<a class="btn" href="./decision-tree.html">Voir l’arbre de décision ↗</a>'+
+      '<a class="btn" href="'+esc(treeBack)+'">Retour à l’arbre de décision ↗</a>'+
       '<button type="button" class="btn" id="downloadMd">Exporter la fiche Markdown</button></div>'+
       '<div class="intro-panel"><strong>En clair</strong><p>'+esc(p.simple)+'</p></div></header>';
     var diagram='<section class="architecture-section" id="architecture">'+
