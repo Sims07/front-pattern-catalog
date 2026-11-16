@@ -8,9 +8,9 @@ const dir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(resolve(dir, p), 'utf8');
 const catalog = JSON.parse(read('patterns.json'));
 const ids = new Set();
-const tags = new Set(['direct', 'bff-rest', 'bff-graphql', 'graphql', 'serverless', 'rendering']);
+const tags = new Set(['direct', 'bff-rest', 'bff-graphql', 'graphql', 'serverless', 'rendering', 'cms']);
 
-test('catalogue: 10 patterns et IDs uniques', () => {
+test('catalogue: 17 patterns et IDs uniques', () => {
   assert.ok(catalog.patterns.length >= 17);
   for (const p of catalog.patterns) {
     assert.match(p.id, /^[a-z0-9-]+$/);
@@ -72,7 +72,7 @@ test('le JavaScript inline est syntaxiquement valide', () => {
   for(const [,code] of scripts) assert.doesNotThrow(() => new Function(code));
 });
 
-test('15 parcours pédagogiques avec canaux et étapes', () => {
+test('17 parcours pédagogiques avec canaux et étapes', () => {
   const ids = new Set();
   const validKinds = new Set(['client','cdn','gateway','bff','service','data','security','event','build','observability']);
   for (const p of catalog.patterns) {
