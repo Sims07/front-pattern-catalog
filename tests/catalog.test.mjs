@@ -51,8 +51,8 @@ test('site autonome, accessible, manifest et cache hors ligne cohérents', () =>
   assert.match(html, /id="comparison"/);
   assert.match(html, /<dialog/);
   assert.match(html, /fetch\("\.\/patterns\.json"/);
-  assert.match(sw, /front-patterns-v3/);
-  for (const path of ['index.html','patterns.json','diagrams.js','decision-tree.html','decision-tree.js','decision-tree.json','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png']) {
+  assert.match(sw, /front-patterns-v4/);
+  for (const path of ['index.html','patterns.json','diagrams.js','decision-tree.html','decision-tree.js','decision-tree.json','pattern.html','pattern-detail.js','pattern-detail.css','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png']) {
     assert.match(sw, new RegExp(path.replaceAll('.', '\\.')));
   }
   assert.equal(manifest.scope, './');
@@ -133,7 +133,7 @@ test('glossaire des acronymes et distinction rendu / architecture', () => {
   assert.match(html,/id="primerTitle"/);
   assert.match(html,/id="glossaryList"/);
   assert.match(html,/id="channel"/);
-  assert.match(html,/PatternDiagrams.renderVertical\(p\)/);
+  assert.match(read('pattern-detail.js'),/PatternDiagrams.renderVertical\(p\)/);
 });
 test('moteur de diagrammes : schéma vertical, branches, flèches et échappement XSS', async () => {
   const vm = await import('node:vm');
@@ -211,4 +211,44 @@ test('les ressources et liens vers arbre/compare sont intégrés au PWA', () => 
   for(const path of ['decision-tree.html','decision-tree.js','decision-tree.json']){
     assert.ok(sw.includes('./'+path),path+' absent cache PWA');
   }
+});
+
+
+test('arbre intégral : tous les nœuds, les issues et liaisons de retour sont accessibles', () => {
+  const h=read('decision-tree.html'),js=read('decision-tree.js');
+  assert.match(h,/id="fullTree"/);
+  assert.match(h,/id="decisionResult"/);
+  assert.match(h,/id="journeyList"/);
+  assert.match(h,/id="treePanel"/);
+  assert.match(h,/data-jump-to="tree-cms"/);
+  assert.match(js,/function drawNode\(/);
+  assert.match(js,/function readPath\(/);
+  assert.match(js,/tree\.nodes\[nodeId\]/);
+  assert.match(js,/data-choice-path/);
+  assert.match(js,/history\.replaceState/);
+  assert.match(js,/treePath/);
+  assert.match(js,/pattern\.html\?id=/);
+  assert.doesNotThrow(()=>new Function(js));
+});
+test('fiches d’architecture dédiées, sans dialogue modal pour le détail', () => {
+  const home=read('index.html'),detail=read('pattern.html'),script=read('pattern-detail.js'),css=read('pattern-detail.css');
+  assert.doesNotMatch(home, /<dialog id="detail"/);
+  assert.match(home,/pattern\.html\?id=/);
+  assert.match(detail,/id="pageContent"/);
+  assert.doesNotMatch(detail,/<dialog/);
+  assert.match(script,/PatternDiagrams.renderVertical\(p\)/);
+  assert.match(script,/treePath/);
+  assert.match(script,/index\.html#compare=/);
+  assert.match(css,/\.content-grid/);
+  assert.doesNotThrow(()=>new Function(script));
+});
+test('PWA multipage : cache offline spécifique aux fiches et à l’arbre', () => {
+  const sw=read('sw.js');
+  for(const filename of ['pattern.html','pattern-detail.js','pattern-detail.css','decision-tree.html']){
+    assert.ok(sw.includes("'./"+filename+"'"),filename+' absent du précache');
+  }
+  assert.match(sw,/filename === 'pattern\.html'/);
+  assert.match(sw,/filename === 'decision-tree\.html'/);
+  assert.match(sw,/caches\.match\(key\)/);
+  assert.doesNotMatch(sw,/caches\.match\('\.\/index\.html'\)\)\);/);
 });

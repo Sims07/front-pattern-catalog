@@ -18,12 +18,12 @@ Catalogue pédagogique de **17 architectures frontend**, pour architectes soluti
 ## L'interface
 
 - Cartes : aperçu horizontal complet du parcours, canaux compatibles, filtres et recherche.
-- Fiche : explication « En clair », schéma **de haut en bas** (nœuds, branches, liaisons), légende, détails des flux et points transverses.
+- Fiche **sur une page dédiée** (`pattern.html?id=...`) : explication « En clair », grand schéma **de haut en bas** (nœuds, branches, liaisons), sommaire d'ancres, exemple, sécurité et points transverses. **Aucune fenêtre pop-up pour les fiches**.
 - Sections : parcours étape par étape, exemple d'utilisation, avantages, compromis, sécurité, mise en œuvre, exploitation ; encart approfondi pour les 5 patterns serverless.
 - Comparer 2–3 patterns ; copier l'ADR Markdown et les fiches avec étapes et architecture.
 - Assistant d'orientation indicatif : canal web/mobile, agrégation d'APIs, identité et hébergement.
 
-Une **page dédiée à l'arbre de décision** (`decision-tree.html`) guide pas à pas la sélection : contenu éditorial / application interactive / tâches longues, puis canal, rendu, API ou orchestration. Elle renvoie aux fiches et, lorsque deux architectures sont pertinentes, ouvre directement leur comparateur.
+Une **page dédiée à l'arbre de décision intégral** (`decision-tree.html`) affiche **toutes les questions, leurs branches et les résultats**, y compris les alternatives non choisies. Les décisions retenues sont surlignées, conservées dans le panneau latéral et dans l'URL (`#path=...`) : changer une réponse ne masque pas le reste de l'arbre. Les fiches s'ouvrent sur une page indépendante et un retour depuis la fiche conserve le chemin (`treePath`). L'arbre peut aussi ouvrir directement une comparaison.
 
 La **comparaison** est accessible dans une barre fixe dès la première sélection. À deux ou trois architectures, le bouton « Comparer les architectures » ouvre une fenêtre avec un tableau et un export ADR ; il n'est plus nécessaire de descendre en bas du catalogue.
 
@@ -33,9 +33,10 @@ Les diagrammes montrent des architectures *illustratives*, pas une obligation d'
 
 - Site statique en HTML, CSS, JS ; aucune compilation ni dépendance runtime.
 - `patterns.json` : textes, références, canaux, architecture à étages `stages/nodes/links`, glossaire.
-- `decision-tree.html`, `decision-tree.js` et `decision-tree.json` : arbre de décision entièrement statique, sans collecte ni stockage utilisateur.
+- `decision-tree.html`, `decision-tree.js` et `decision-tree.json` : arbre intégral interactif sans masquer les anciennes branches, chemin conservé dans l'URL (sans stockage utilisateur).
+- `pattern.html`, `pattern-detail.js`, `pattern-detail.css` : fiches d'architecture standalone, sommaire, sections de mise en œuvre et navigation précédente/suivante.
 - `diagrams.js` : moteur SVG autonome (flèches colorées par type, branches, niveaux et protocole).
-- PWA : cache versionné, intégrant également l'arbre de décision, `sw.js`, `manifest.webmanifest`, icônes, cache hors ligne isolé au périmètre de l'application.
+- PWA : cache versionné `sw.js` avec **pages séparées pour l'accueil, l'arbre et les fiches**, `manifest.webmanifest` et icônes. La navigation hors ligne affiche la bonne page au lieu de substituer systématiquement l'accueil.
 - Aucun backend ou stockage de données personnelles.
 - Sources officielles : Microsoft Azure BFF, MDN rendu web, IETF OAuth, AWS Lambda/serverless, Next.js, Apollo GraphQL.
 
@@ -58,8 +59,9 @@ Le portail principal référence ce site via https://sims07.github.io/tools-port
 
 Modifier `patterns.json` : une fiche contient les champs existants, `audience` (`web`, `mobile`), `simple`, `steps`, `implementation`, `example`, `preview`, `architecture.stages` (chaque nœud a un ID unique, un titre, une description et une catégorie), `architecture.links` (références aux IDs, protocole, catégorie du flux) et, pour les cas concernés, `serverless`. Les tests valident les liens et les couvertures. Les références des sources sont résolues par leur identifiant.
 
+La logique de décision est versionnée dans `decision-tree.json` : chaque option renvoie soit vers un autre nœud (`to`), soit vers une courte liste d'IDs de patterns (`patterns`), complétée par une raison (`why`). Les tests vérifient la validité du graphe et les liens vers les fiches.
+
+
 ## Licence
 
 Contenu documentaire réutilisable sous les conditions de la licence du projet.
-
-La logique de décision est versionnée dans `decision-tree.json` : chaque option renvoie soit vers un autre nœud (`to`), soit vers une courte liste d'IDs de patterns (`patterns`), complétée par une raison (`why`). Les tests vérifient la validité du graphe et les liens vers les fiches.

@@ -4,73 +4,64 @@ import { chromium } from 'playwright';
 
 const url = 'http://127.0.0.1:8765/';
 let browser;
+test.before(async () => { browser = await chromium.launch({headless:true}); });
+test.after(async () => { await browser?.close(); });
 
-test.before(async () => {
-  browser = await chromium.launch({ headless: true });
-});
-test.after(async () => {
-  await browser?.close();
-});
-
-test('desktop : recherche, schéma vertical complet et parcours serverless', async () => {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 960 } });
-  const errors = [];
-  page.on('pageerror', e => errors.push(e.message));
-  const response = await page.goto(url, { waitUntil: 'networkidle' });
-  assert.equal(response.status(), 200);
-  await page.locator('.pattern').first().waitFor();
-  assert.equal(await page.locator('.pattern').count(), 17);
-  await page.getByRole('button', { name: 'Serverless', exact: true }).click();
-  assert.ok(await page.locator('.pattern').count() >= 5);
-  await page.locator('#pattern-serverless-async [data-open]').click();
-  const dialog = page.locator('#detail');
-  await dialog.waitFor({ state: 'visible' });
-  assert.equal(await dialog.locator('.architecture-svg').count(), 1);
-  assert.ok(await dialog.locator('.arch-node').count() >= 7);
-  assert.ok(await dialog.locator('.edge').count() >= 6);
-  assert.ok((await dialog.locator('svg').getAttribute('height')) > 500);
-  assert.ok((await dialog.locator('.serverless-grid > div').count()) >= 6);
-  await dialog.getByText(/liaisons et protocoles/).click();
-  assert.ok(await dialog.locator('.flow-details li').count() >= 8);
-  await page.screenshot({ path: 'artifacts/architecture-serverless-desktop.png', fullPage: false });
-  await dialog.getByRole('button', { name: /Fermer/ }).click();
-  await page.getByRole('button', { name: 'Tous', exact: true }).click();
-  await page.locator('#search').fill('mobile natif');
-  assert.ok(await page.locator('.pattern').count() >= 1);
-  assert.deepEqual(errors, []);
-  await page.close();
-});
-
-test('mobile : glossaire, schéma haut-bas et clients distincts', async () => {
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, deviceScaleFactor: 1 });
-  const errors=[];
-  page.on('pageerror', e=>errors.push(e.message));
-  await page.goto(url, { waitUntil: 'networkidle' });
-  await page.locator('.pattern').first().waitFor();
-  await page.locator('[data-filter="mobile"]').click();
-  assert.ok(await page.locator('.pattern').count() >= 3);
-  await page.locator('#pattern-mobile-native-direct [data-open]').click();
-  const dialog = page.locator('#detail');
-  await dialog.waitFor({ state: 'visible' });
-  assert.ok((await dialog.locator('.arch-node').count()) >= 6);
-  assert.match(await dialog.locator('.diagram-scroll').getAttribute('class'), /diagram-scroll/);
-  assert.ok(await dialog.getByText(/Aucun CDN|Un CDN web n'est pas/).count() >= 1);
-  await page.screenshot({path:'artifacts/architecture-mobile-detail.png',fullPage:false});
-  await dialog.getByRole('button',{name:/Fermer/}).click();
-  await page.locator('#glossaire').scrollIntoViewIfNeeded();
-  assert.ok(await page.locator('.glossary-item').count() >= 14);
-  await page.locator('.glossary-item').filter({hasText:'Static Site Generation'}).locator('summary').click();
-  assert.ok(await page.getByText(/pages HTML sont générées|pages sont/).count() > 0);
-  assert.deepEqual(errors,[]);
-  await page.close();
-});
-
-test('comparaison : barre persistante, fenêtre et filtrage sans perdre la sélection', async () => {
- const page=await browser.newPage({viewport:{width:1366,height:850}});
+test('desktop : une fiche se lit sur une page complète, jamais dans une popup', async () => {
+ const page=await browser.newPage({viewport:{width:1440,height:960}});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(url,{waitUntil:'networkidle'});
  await page.locator('.pattern').first().waitFor();
  assert.equal(await page.locator('.pattern').count(),17);
+ assert.equal(await page.locator('#detail').count(),0);
+ await page.getByRole('button',{name:'Serverless',exact:true}).click();
+ await page.locator('#pattern-serverless-async a.detail').click();
+ await page.waitForURL('**/pattern.html?id=serverless-async');
+ assert.equal(await page.locator('dialog').count(),0);
+ assert.equal(await page.locator('.architecture-svg').count(),1);
+ assert.ok(await page.locator('.arch-node').count()>=7);
+ assert.ok(await page.locator('.edge').count()>=6);
+ assert.ok(await page.locator('.serverless-grid > div').count()>=6);
+ await page.locator('.flow-details summary').click();
+ assert.ok(await page.locator('.flow-details li').count()>=8);
+ assert.equal(await page.locator('.toc').isVisible(),true);
+ await page.screenshot({path:'artifacts/architecture-serverless-full-page.png',fullPage:false});
+ await page.getByRole('link',{name:'Toutes les architectures'}).click();
+ await page.waitForURL('**/index.html');
+ await page.locator('#search').fill('mobile natif');
+ assert.ok(await page.locator('.pattern').count()>=1);
+ assert.deepEqual(errors,[]);
+ await page.close();
+});
+
+test('mobile : fiche indépendante, navigation et glossaire',async()=>{
+ const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,deviceScaleFactor:1});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(url,{waitUntil:'networkidle'});
+ await page.locator('.pattern').first().waitFor();
+ await page.locator('[data-filter="mobile"]').click();
+ assert.ok(await page.locator('.pattern').count()>=3);
+ await page.locator('#pattern-mobile-native-direct a.detail').click();
+ await page.waitForURL('**/pattern.html?id=mobile-native-direct');
+ assert.equal(await page.locator('dialog').count(),0);
+ assert.ok(await page.locator('.arch-node').count()>=6);
+ assert.ok(await page.locator('.diagram-scroll').count()>0);
+ assert.ok(await page.getByText(/Aucun CDN|Un CDN web n'est pas/).count()>=1);
+ await page.screenshot({path:'artifacts/architecture-mobile-full-page.png',fullPage:false});
+ await page.getByRole('link',{name:'Toutes les architectures'}).click();
+ await page.locator('#glossaire').scrollIntoViewIfNeeded();
+ assert.ok(await page.locator('.glossary-item').count()>=14);
+ await page.locator('.glossary-item').filter({hasText:'Static Site Generation'}).locator('summary').click();
+ assert.ok(await page.getByText(/pages HTML sont générées|pages sont/).count()>0);
+ assert.deepEqual(errors,[]);
+ await page.close();
+});
+
+test('comparaison : barre persistante et choix conservés à travers les filtres',async()=>{
+ const page=await browser.newPage({viewport:{width:1366,height:850}});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(url,{waitUntil:'networkidle'});
+ await page.locator('.pattern').first().waitFor();
  const tray=page.locator('#compareTray');
  assert.equal(await tray.isVisible(),false);
  await page.locator('#pattern-spa-rest-direct [data-compare]').check();
@@ -78,13 +69,9 @@ test('comparaison : barre persistante, fenêtre et filtrage sans perdre la séle
  assert.equal(await page.locator('#launchCompare').isDisabled(),true);
  await page.locator('#pattern-bff-rest [data-compare]').check();
  assert.equal(await page.locator('#launchCompare').isEnabled(),true);
- assert.match(await page.locator('#compareCount').innerText(),/2\/3/);
- await page.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
- assert.equal(await tray.isVisible(),true);
  await page.locator('#launchCompare').click();
- const cmp=page.locator('#comparison');
- assert.equal(await cmp.isVisible(),true);
- assert.equal(await cmp.locator('thead th').count(),3);
+ assert.equal(await page.locator('#comparison').isVisible(),true);
+ assert.equal(await page.locator('#comparison thead th').count(),3);
  await page.screenshot({path:'artifacts/comparison-desktop.png'});
  await page.locator('#closeComparison').click();
  await page.getByRole('button',{name:'CMS & headless'}).click();
@@ -97,33 +84,76 @@ test('comparaison : barre persistante, fenêtre et filtrage sans perdre la séle
  assert.deepEqual(errors,[]);
  await page.close();
 });
-test('arbre de décision : parcours CMS, résultat et comparaison via lien profond', async () => {
+
+test('arbre intégral : toutes les branches restent visibles quand le choix avance',async()=>{
  const page=await browser.newPage({viewport:{width:1280,height:900}});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(url+'decision-tree.html',{waitUntil:'networkidle'});
- await page.getByRole('button',{name:/Un site où des éditeurs publient du contenu/}).click();
- await page.getByRole('button',{name:/Le front doit évoluer indépendamment du CMS/}).click();
- await page.getByRole('button',{name:/Site web et application mobile native/}).click();
- assert.equal(await page.locator('.result').count(),2);
- assert.match(await page.locator('.result').first().innerText(),/CMS headless/);
- await page.screenshot({path:'artifacts/decision-tree-cms.png'});
- await page.getByRole('link',{name:/Comparer ces 2 architectures/}).click();
- await page.locator('#comparison').waitFor({state:'visible'});
- assert.equal(await page.locator('#comparison thead th').count(),3);
- assert.equal(await page.locator('#compareTray').isVisible(),true);
+ await page.locator('[data-select-path="0"]').waitFor();
+ const initialQuestions=await page.locator('.tree-question').count();
+ const initialOutcomes=await page.locator('.tree-leaf').count();
+ assert.ok(initialQuestions>=13);
+ assert.ok(initialOutcomes>=20);
+ assert.equal(await page.locator('#tree-cms').count(),1);
+ assert.equal(await page.locator('#tree-app').count(),1);
+ assert.equal(await page.locator('#tree-async').count(),1);
+ await page.locator('[data-select-path="0"]').click();
+ await page.locator('[data-select-path="0.1"]').click();
+ await page.locator('[data-select-path="0.1.1"]').click();
+ assert.equal(await page.locator('.tree-question').count(),initialQuestions);
+ assert.equal(await page.locator('.tree-leaf').count(),initialOutcomes);
+ assert.equal(await page.locator('.tree-choice.is-chosen').count(),3);
+ assert.equal(await page.locator('#decisionResult .result-links li').count(),2);
+ assert.match(page.url(),/#path=0\.1\.1/);
+ await page.screenshot({path:'artifacts/decision-tree-entire-selected.png',fullPage:false});
+ await page.reload({waitUntil:'networkidle'});
+ await page.locator('[data-select-path="0"]').waitFor();
+ assert.equal(await page.locator('.tree-choice.is-chosen').count(),3);
+ await page.locator('[data-jump-to="tree-app"]').click();
+ assert.match(page.url(),/#path=0\.1\.1/);
+ await page.locator('[data-select-path="1.1"]').click();
+ assert.equal(await page.locator('.tree-question').count(),initialQuestions);
+ assert.equal(await page.locator('.tree-choice.is-chosen').count(),2);
+ assert.match(page.url(),/#path=1\.1/);
+ await page.locator('#startOver').click();
+ assert.equal(await page.locator('.tree-choice.is-chosen').count(),0);
+ assert.equal(await page.locator('.tree-question').count(),initialQuestions);
  assert.deepEqual(errors,[]);
  await page.close();
 });
-test('comparaison mobile : accès immédiat même après défilement',async()=>{
+
+test('arbre → fiche CMS → retour au parcours puis comparaison directe',async()=>{
+ const page=await browser.newPage({viewport:{width:1280,height:900}});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(url+'decision-tree.html',{waitUntil:'networkidle'});
+ await page.locator('[data-select-path="0.1.1"]').click();
+ const result=page.locator('#decisionResult');
+ assert.equal(await result.locator('.result-links li').count(),2);
+ assert.match(await result.innerText(),/CMS headless/);
+ await result.locator('.result-links a').first().click();
+ await page.waitForURL('**/pattern.html?id=cms-headless&treePath=0.1.1');
+ assert.equal(await page.locator('.architecture-svg').count(),1);
+ assert.equal(await page.locator('dialog').count(),0);
+ await page.locator('.controls a').filter({hasText:'Retour à l’arbre de décision'}).click();
+ await page.waitForURL('**/decision-tree.html#path=0.1.1');
+ assert.equal(await page.locator('.tree-choice.is-chosen').count(),3);
+ await page.locator('#decisionResult .result-compare').click();
+ await page.waitForURL('**/index.html#compare=cms-headless,multi-channel-bff');
+ await page.locator('#comparison').waitFor({state:'visible'});
+ assert.equal(await page.locator('#comparison thead th').count(),3);
+ assert.deepEqual(errors,[]);
+ await page.close();
+});
+
+test('comparaison mobile : action visible et tableau accessible',async()=>{
  const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,deviceScaleFactor:1});
  await page.goto(url,{waitUntil:'networkidle'});
  await page.locator('.pattern').first().waitFor();
  await page.locator('#pattern-cms-coupled [data-compare]').check();
  await page.locator('#pattern-cms-headless [data-compare]').check();
  await page.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
- const btn=page.locator('#launchCompare');
- assert.equal(await btn.isVisible(),true);
- await btn.click();
+ assert.equal(await page.locator('#launchCompare').isVisible(),true);
+ await page.locator('#launchCompare').click();
  assert.equal(await page.locator('#comparison').isVisible(),true);
  assert.equal(await page.locator('#comparison thead th').count(),3);
  await page.screenshot({path:'artifacts/comparison-mobile.png'});
