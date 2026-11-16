@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1020">
+<meta name="description" content="Fiche d'architecture technique détaillée : schéma, fonctionnement, bénéfices, limites, sécurité et exploitation.">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="stylesheet" href="./pattern-detail.css">
+<title>Fiche d’architecture · Front Pattern Catalog</title>
+</head>
+<body>
+<header class="topbar"><div class="wrap topbar-inner">
+<a class="brand" href="./index.html"><span class="mark" aria-hidden="true">⌘</span><span><small>Architecture Solutions</small>Front Pattern Catalog</span></a>
+<nav class="links" aria-label="Navigation principale"><a href="./index.html">Toutes les architectures</a><a href="./decision-tree.html">Arbre de décision</a><a href="https://sims07.github.io/tools-portal/">Portail</a></nav>
+</div></header>
+<main class="wrap" id="main">
+<nav class="breadcrumb" aria-label="Fil d’Ariane"><a href="./index.html">Catalogue</a><span aria-hidden="true">›</span><span id="breadcrumbCurrent">Fiche d'architecture</span></nav>
+<div id="status" role="status" aria-live="polite">Chargement de la fiche d'architecture…</div>
+<div id="pageContent" hidden></div>
+</main>
+<footer><div class="wrap">Front Pattern Catalog · Architecture Solutions · Fiches d’architecture consultables sans fenêtre superposée</div></footer>
+<script src="./diagrams.js"></script>
+<script src="./pattern-detail.js"></script>
+<script>
+if('serviceWorker' in navigator && location.protocol!=='file:') {
+ window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(function(){})});
+}
+</script>
+</body></html>
