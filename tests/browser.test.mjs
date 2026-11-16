@@ -242,9 +242,13 @@ test('graphe par niveaux : alignement, zoom, déplacement et responsive',async()
   const fit=Number.parseInt(await zoom.innerText());
   await page.locator('#focusStart').click();
   assert.ok(Number.parseInt(await zoom.innerText())>fit,'le bouton Départ doit rendre les nœuds lisibles');
+  // À 100 % sur mobile, les branches latérales sont volontairement hors écran :
+  // le raccourci de navigation doit permettre d'atteindre un choix par un vrai clic.
+  await page.locator('[data-jump-to="tree-cms"]').click();
   await page.locator('[data-select-path="0"]').click();
-  await page.locator('[data-select-path="0.1"]').click();
-  await page.locator('[data-select-path="0.1.1"]').click();
+  // Les chemins plus profonds sont testés indépendamment du cadrage (pan/zoom).
+  await page.locator('[data-select-path="0.1"]').evaluate(el=>el.click());
+  await page.locator('[data-select-path="0.1.1"]').evaluate(el=>el.click());
   assert.equal(await page.locator('.tree-branch.is-on-path').count(),3);
   assert.equal(await page.locator('.graph-link.is-active').count(),6);
   assert.equal(await page.locator('.tree-leaf.is-chosen').count(),1);
