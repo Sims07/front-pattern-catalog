@@ -17,7 +17,7 @@ Catalogue pédagogique de **17 architectures frontend**, pour architectes soluti
 
 ## L'interface
 
-- Cartes : aperçu horizontal complet du parcours, canaux compatibles, filtres et recherche.
+- Cartes : **teasers lisibles sans défilement**, 3 repères métier sur une seule ligne, une phrase de valeur, le nombre de composants détaillés et un lien vers la fiche complète. Chaque teaser est défini dans `patterns.json` (`cardPreview.steps` / `cardPreview.value`). Les schémas riches restent réservés aux fiches de détail ; canaux, filtres et recherche inchangés.
 - Fiche **sur une page dédiée** (`pattern.html?id=...`) : explication « En clair », grand schéma **de haut en bas** (nœuds, branches, liaisons), sommaire d'ancres, exemple, sécurité et points transverses. **Aucune fenêtre pop-up pour les fiches**.
 - Sections : parcours étape par étape, exemple d'utilisation, avantages, compromis, sécurité, mise en œuvre, exploitation ; encart approfondi pour les 5 patterns serverless.
 - Comparer 2–3 patterns ; copier l'ADR Markdown et les fiches avec étapes et architecture.
@@ -35,7 +35,7 @@ Les diagrammes montrent des architectures *illustratives*, pas une obligation d'
 - `patterns.json` : textes, références, canaux, architecture à étages `stages/nodes/links`, glossaire.
 - `decision-tree.html`, `decision-tree.js` et `decision-tree.json` : arbre intégral interactif sans masquer les anciennes branches, chemin conservé dans l'URL (sans stockage utilisateur).
 - `pattern.html`, `pattern-detail.js`, `pattern-detail.css` : fiches d'architecture standalone, sommaire, sections de mise en œuvre et navigation précédente/suivante.
-- `diagrams.js` : moteur SVG autonome (flèches colorées par type, branches, niveaux et protocole).
+- `diagrams.js` : mini-flux de carte sans scroll (3 étapes représentatives, jamais un graphe complet réduit) et moteur SVG autonome pour les fiches (flèches colorées par type, branches, niveaux et protocole).
 - PWA : cache versionné `sw.js` avec **pages séparées pour l'accueil, l'arbre et les fiches**, `manifest.webmanifest` et icônes. La navigation hors ligne affiche la bonne page au lieu de substituer systématiquement l'accueil.
 - Aucun backend ou stockage de données personnelles.
 - Sources officielles : Microsoft Azure BFF, MDN rendu web, IETF OAuth, AWS Lambda/serverless, Next.js, Apollo GraphQL.

@@ -51,7 +51,7 @@ test('site autonome, accessible, manifest et cache hors ligne cohérents', () =>
   assert.match(html, /id="comparison"/);
   assert.match(html, /<dialog/);
   assert.match(html, /fetch\("\.\/patterns\.json"/);
-  assert.match(sw, /front-patterns-v4/);
+  assert.match(sw, /front-patterns-v5/);
   for (const path of ['index.html','patterns.json','diagrams.js','decision-tree.html','decision-tree.js','decision-tree.json','pattern.html','pattern-detail.js','pattern-detail.css','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png']) {
     assert.match(sw, new RegExp(path.replaceAll('.', '\\.')));
   }
@@ -149,7 +149,9 @@ test('moteur de diagrammes : schéma vertical, branches, flèches et échappemen
   assert.match(svg,/Dead-letter queue/);
   assert.match(svg,/liaisons et protocoles/);
   const preview=draw.preview(p);
-  assert.ok((preview.match(/class="node /g)||[]).length>=4);
+  assert.equal((preview.match(/class="preview-node preview-node-/g)||[]).length,3);
+  assert.match(preview,/card-value/);
+  assert.doesNotMatch(preview,/chain-expanded|overflow-x|scroll/);
   assert.equal(draw.escapeHTML('<img src=x onerror="alert(1)">'),'&lt;img src=x onerror=&quot;alert(1)&quot;&gt;');
 });
 test('service worker conserve les données et le moteur des schémas hors-ligne', () => {
@@ -252,3 +254,26 @@ test('PWA multipage : cache offline spécifique aux fiches et à l’arbre', () 
   assert.match(sw,/caches\.match\(key\)/);
   assert.doesNotMatch(sw,/caches\.match\('\.\/index\.html'\)\)\);/);
 });
+
+test('aperçu des 17 cartes : 3 repères courts et une proposition de valeur', () => {
+  const draw = requireVm();
+  for(const p of catalog.patterns) {
+    const teaser=p.cardPreview;
+    assert.equal(teaser.steps.length,3,p.id + ': les cartes doivent avoir exactement 3 repères');
+    assert.ok(teaser.steps.every(s => typeof s==='string' && s.length>=2 && s.length<=19),p.id+': libellé trop long');
+    assert.ok(teaser.value.length>=25 && teaser.value.length<=90,p.id+': phrase de valeur');
+    const html=draw.preview(p);
+    assert.equal((html.match(/class="preview-node preview-node-/g)||[]).length,3,p.id);
+    assert.equal((html.match(/class="preview-arrow"/g)||[]).length,2,p.id);
+    assert.match(html,/composants expliqués dans la fiche/);
+    for(const name of teaser.steps) assert.ok(html.includes(draw.escapeHTML(name)),p.id+' : repère absent');
+  }
+  const home=read('index.html');
+  assert.match(home,/\.card-preview-flow\{display:grid/);
+  assert.match(home,/grid-template-columns:minmax\(0,1fr\)/);
+  assert.match(home,/overflow:visible/);
+});
+function requireVm(){
+  const vm=requireVm.vm || (()=>{ const mod = {exports:{}}; const factory=new Function('module','globalThis',read('diagrams.js')); factory(mod,{}); return mod.exports; })();
+  return vm;
+}

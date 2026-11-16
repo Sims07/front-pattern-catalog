@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "updated": "2026-11-16",
   "description": "Catalogue pédagogique de patterns frontend et de gestion de contenus : web, mobile, BFF, serverless, CMS traditionnel et CMS headless.",
   "sources": [
@@ -246,6 +246,14 @@
           "Identité : OAuth public + PKCE",
           "Observabilité : RUM web, métriques gateway et APIs"
         ]
+      },
+      "cardPreview": {
+        "steps": [
+          "SPA web",
+          "API REST",
+          "Services"
+        ],
+        "value": "Un parcours simple, sans backend propre au front."
       }
     },
     {
@@ -459,6 +467,14 @@
           "OAuth public + PKCE si web protégé",
           "Complexité des requêtes, N+1, autorisation par objet/champ"
         ]
+      },
+      "cardPreview": {
+        "steps": [
+          "SPA web",
+          "GraphQL",
+          "Résolveurs"
+        ],
+        "value": "Le navigateur demande uniquement les données utiles."
       }
     },
     {
@@ -670,6 +686,14 @@
           "IdP OAuth : BFF client confidentiel, secrets serveur",
           "Session web, CSRF, propagation identité, traces distribuées"
         ]
+      },
+      "cardPreview": {
+        "steps": [
+          "SPA web",
+          "BFF REST",
+          "APIs métier"
+        ],
+        "value": "Une couche dédiée assemble et sécurise les données."
       }
     },
     {
@@ -900,6 +924,14 @@
           "OAuth confidentiel, cookie de session, CSRF",
           "Tracing par opération et résolveur, limites anti-abus"
         ]
+      },
+      "cardPreview": {
+        "steps": [
+          "SPA web",
+          "BFF GraphQL",
+          "Services"
+        ],
+        "value": "Un schéma dédié aux besoins des écrans."
       }
     },
     {
@@ -1113,6 +1145,14 @@
           "SSR : HTML généré à la requête, CSR possible après hydratation",
           "Identité côté serveur ; isoler le cache par utilisateur"
         ]
+      },
+      "cardPreview": {
+        "steps": [
+          "Navigateur",
+          "SSR + BFF",
+          "APIs métier"
+        ],
+        "value": "Le serveur prépare la page et gère les accès API."
       }
     },
     {
@@ -1295,6 +1335,14 @@
           "Les lignes build → CDN décrivent une livraison, pas un appel API",
           "Mises à jour : rebuild / revalidation / purge CDN"
         ]
+      },
+      "cardPreview": {
+        "steps": [
+          "Build SSG",
+          "CDN",
+          "Navigateur"
+        ],
+        "value": "Des pages construites à l’avance, rapides à diffuser."
       }
     },
     {
@@ -1535,6 +1583,14 @@
           "Secrets / sessions dans un service externe : la fonction est stateless",
           "Quota / observabilité / IAM / cold starts"
         ]
+      },
+      "cardPreview": {
+        "steps": [
+          "Client web",
+          "BFF Function",
+          "Services"
+        ],
+        "value": "La composition REST s’exécute à la demande."
       }
     },
     {
@@ -1770,6 +1826,14 @@
           "Autorisation par donnée et coût des requêtes",
           "Résolveurs stateless ; surveiller N+1 et démarrages à froid"
         ]
+      },
+      "cardPreview": {
+        "steps": [
+          "Web / mobile",
+          "GraphQL",
+          "Functions"
+        ],
+        "value": "Des résolveurs qui s’exécutent à la demande."
       }
     },
     {
@@ -1963,6 +2027,14 @@
           "Runtime edge limité selon le fournisseur",
           "Bien mesurer latence régionale et clés de cache"
         ]
+      },
+      "cardPreview": {
+        "steps": [
+          "Navigateur",
+          "SSR Edge",
+          "API origine"
+        ],
+        "value": "Le HTML est calculé au plus près de l’utilisateur."
       }
     },
     {
@@ -2181,6 +2253,14 @@
           "Design system, SSO, navigation et observabilité transverses",
           "Forte charge organisationnelle : éviter pour une seule petite équipe"
         ]
+      },
+      "cardPreview": {
+        "steps": [
+          "Shell web",
+          "Micro-fronts",
+          "BFF dédiés"
+        ],
+        "value": "Chaque domaine peut faire évoluer son expérience."
       }
     },
     {
@@ -2410,6 +2490,14 @@
           "Contrat REST et SLO par canal",
           "Web : cookies/CSRF ; mobile : PKCE et stockage sûr"
         ]
+      },
+      "cardPreview": {
+        "steps": [
+          "Web + natif",
+          "BFF par canal",
+          "Services"
+        ],
+        "value": "Un backend adapté à chaque expérience."
       }
     },
     {
@@ -2597,6 +2685,14 @@
           "Aucun CDN HTML dans le parcours natif",
           "PKCE, secure storage, gestion des versions anciennes"
         ]
+      },
+      "cardPreview": {
+        "steps": [
+          "App native",
+          "API Gateway",
+          "Services"
+        ],
+        "value": "Le mobile utilise directement les APIs métier."
       }
     },
     {
@@ -2813,6 +2909,14 @@
           "Fonctions ≠ BFF automatiquement",
           "Sécurité et droits vérifiés dans chaque opération"
         ]
+      },
+      "cardPreview": {
+        "steps": [
+          "Web / mobile",
+          "Functions",
+          "Données"
+        ],
+        "value": "Quelques endpoints sans serveur permanent à gérer."
       }
     },
     {
@@ -3062,6 +3166,14 @@
           "Retour HTTP 202 avant fin du travail",
           "Idempotence, DLQ et supervision de l'âge de la file"
         ]
+      },
+      "cardPreview": {
+        "steps": [
+          "Client",
+          "File",
+          "Worker"
+        ],
+        "value": "Un traitement long s’exécute sans bloquer l’interface."
       }
     },
     {
@@ -3317,6 +3429,14 @@
           "Workflow durable, timeouts, retries et compensations",
           "Retour au client par API de statut et/ou notification"
         ]
+      },
+      "cardPreview": {
+        "steps": [
+          "Client",
+          "Orchestrateur",
+          "Étapes"
+        ],
+        "value": "Un processus multi-étapes est piloté et repris."
       }
     },
     {
@@ -3548,6 +3668,14 @@
           "MFA éditeurs, mises à jour du CMS et des extensions",
           "Un CMS monolithique reste une architecture valable si le besoin le justifie"
         ]
+      },
+      "cardPreview": {
+        "steps": [
+          "Éditeur",
+          "CMS + rendu",
+          "Page HTML"
+        ],
+        "value": "Édition et présentation réunies dans le CMS."
       }
     },
     {
@@ -3801,6 +3929,14 @@
           "Sécurité des contenus privés, tokens de preview et webhooks",
           "Le headless peut utiliser REST ou GraphQL avec ou sans BFF"
         ]
+      },
+      "cardPreview": {
+        "steps": [
+          "CMS",
+          "API contenu",
+          "Fronts"
+        ],
+        "value": "Le même contenu alimente plusieurs interfaces."
       }
     }
   ],

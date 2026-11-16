@@ -159,3 +159,46 @@ test('comparaison mobile : action visible et tableau accessible',async()=>{
  await page.screenshot({path:'artifacts/comparison-mobile.png'});
  await page.close();
 });
+
+
+test('cartes : aucun défilement interne du teaser sur toutes les tailles et tous les patterns', async()=>{
+ const page=await browser.newPage({viewport:{width:1440,height:930}});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ for(const width of [320,360,390,768,1024,1440]){
+  await page.setViewportSize({width,height:900});
+  await page.goto(url,{waitUntil:'networkidle'});
+  await page.locator('.pattern').first().waitFor();
+  assert.equal(await page.locator('.pattern').count(),17);
+  const result=await page.locator('.pattern').evaluateAll(cards=>cards.map(card=>{
+    const preview=card.querySelector('.card-preview');
+    const flow=preview.querySelector('.card-preview-flow');
+    const parts=[...flow.querySelectorAll('.preview-node')];
+    const cardRect=card.getBoundingClientRect(),flowRect=flow.getBoundingClientRect();
+    return {
+      id:card.id,
+      hasScroll:flow.scrollWidth>flow.clientWidth+1||preview.scrollWidth>preview.clientWidth+1||
+        card.scrollWidth>card.clientWidth+1,
+      count:parts.length,
+      nodesFit:parts.every(node=>{
+        const r=node.getBoundingClientRect();
+        return r.width>=44&&r.left>=flowRect.left-1&&r.right<=flowRect.right+1;
+      }),
+      labelPresent:!!card.querySelector('.card-value'),
+      link:card.querySelector('a.detail')?.getAttribute('href'),
+      tooWide:flowRect.right>cardRect.right+1
+    };
+  }));
+  for(const item of result){
+    assert.equal(item.hasScroll,false,'scroll interne '+width+'px : '+item.id);
+    assert.equal(item.tooWide,false,'prévisualisation déborde de la carte '+width+'px : '+item.id);
+    assert.equal(item.nodesFit,true,'un repère sort de la carte '+width+'px : '+item.id);
+    assert.equal(item.count,3,'pas trois repères : '+item.id);
+    assert.equal(item.labelPresent,true,'accroche absente : '+item.id);
+    assert.match(item.link,/^\.\/pattern\.html\?id=/);
+  }
+  if(width===390)await page.screenshot({path:'artifacts/cards-no-scroll-mobile.png',fullPage:false});
+  if(width===1440)await page.screenshot({path:'artifacts/cards-no-scroll-desktop.png',fullPage:false});
+ }
+ assert.deepEqual(errors,[]);
+ await page.close();
+});
