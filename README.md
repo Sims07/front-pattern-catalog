@@ -23,7 +23,7 @@ Catalogue pédagogique de **17 architectures frontend**, pour architectes soluti
 - Comparer 2–3 patterns ; copier l'ADR Markdown et les fiches avec étapes et architecture.
 - Assistant d'orientation indicatif : canal web/mobile, agrégation d'APIs, identité et hébergement.
 
-Une **page dédiée à l'arbre de décision intégral** (`decision-tree.html`) affiche **toutes les questions, leurs branches et les résultats**, y compris les alternatives non choisies. Les décisions retenues sont surlignées, conservées dans le panneau latéral et dans l'URL (`#path=...`) : changer une réponse ne masque pas le reste de l'arbre. Les fiches s'ouvrent sur une page indépendante et un retour depuis la fiche conserve le chemin (`treePath`). L'arbre peut aussi ouvrir directement une comparaison.
+Une **page dédiée à l'arbre de décision intégral** (`decision-tree.html`) affiche **toutes les questions, leurs branches et les résultats** dans une lecture **verticale**, du haut vers le bas, avec des cartes de largeur constante à chaque profondeur (sans indentation cumulative), y compris les alternatives non choisies. Les décisions retenues sont surlignées, conservées dans le panneau latéral et dans l'URL (`#path=...`) : changer une réponse ne masque pas le reste de l'arbre. Les fiches s'ouvrent sur une page indépendante et un retour depuis la fiche conserve le chemin (`treePath`). L'arbre peut aussi ouvrir directement une comparaison.
 
 La **comparaison** est accessible dans une barre fixe dès la première sélection. À deux ou trois architectures, le bouton « Comparer les architectures » ouvre une fenêtre avec un tableau et un export ADR ; il n'est plus nécessaire de descendre en bas du catalogue.
 

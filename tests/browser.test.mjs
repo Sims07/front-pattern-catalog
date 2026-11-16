@@ -202,3 +202,36 @@ test('cartes : aucun défilement interne du teaser sur toutes les tailles et tou
  assert.deepEqual(errors,[]);
  await page.close();
 });
+
+test('arbre vertical : largeur constante, sans débordement sur mobile et desktop',async()=>{
+ for(const width of [320,390,768,1280]){
+  const page=await browser.newPage({viewport:{width,height:900}});
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(url+'decision-tree.html',{waitUntil:'networkidle'});
+  await page.locator('[data-depth="3"]').first().waitFor();
+  const layout=await page.evaluate(()=>{
+   const root=document.querySelector('.tree-root-head').getBoundingClientRect();
+   const nested=[...document.querySelectorAll('.tree-question[data-depth]')].filter(el=>Number(el.dataset.depth)>=3);
+   const heads=nested.map(el=>el.querySelector('.tree-question-head').getBoundingClientRect());
+   return {
+    overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,
+    direction:getComputedStyle(document.querySelector('.tree-branches')).flexDirection,
+    minRatio:Math.min(...heads.map(r=>r.width/root.width)),
+    fullQuestions:document.querySelectorAll('.tree-question').length,
+    visibleChoices:[...document.querySelectorAll('.tree-choice')].every(el=>getComputedStyle(el).display!=='none')
+   };
+  });
+  assert.ok(layout.overflow<=1,'débordement horizontal à '+width+'px : '+layout.overflow);
+  assert.equal(layout.direction,'column');
+  assert.ok(layout.minRatio>=0.82,'carte trop étroite à '+width+'px : '+layout.minRatio);
+  assert.ok(layout.fullQuestions>=13);
+  assert.ok(layout.visibleChoices);
+  await page.locator('[data-select-path="0.1.1"]').click();
+  assert.equal(await page.locator('.tree-branch.is-on-path').count(),3);
+  assert.equal(await page.locator('.tree-choice.is-chosen').count(),3);
+  assert.equal(await page.locator('.tree-leaf.is-chosen').count(),1);
+  if(width===390||width===1280)await page.screenshot({path:'artifacts/decision-tree-vertical-'+width+'.png'});
+  assert.deepEqual(errors,[]);
+  await page.close();
+ }
+});
