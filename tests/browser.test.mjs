@@ -255,3 +255,67 @@ test('graphe par niveaux : alignement, zoom, déplacement et responsive',async()
   await page.close();
  }
 });
+
+
+test('graphe lisible : largeur d’écran exploitée et zoom natif à 100 %',async()=>{
+ for(const width of [1280,1440,1920,2560]){
+  const page=await browser.newPage({viewport:{width,height:1000},deviceScaleFactor:1});
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(url+'decision-tree.html',{waitUntil:'networkidle'});
+  await page.locator('[data-select-path="0"]').waitFor();
+  const measures=await page.evaluate(()=>{
+   const root=document.querySelector('.wrap').getBoundingClientRect();
+   const canvas=document.querySelector('#graphViewport').getBoundingClientRect();
+   const cssTransform=document.querySelector('#treePanel').style.transform;
+   return {rootWidth:root.width,canvasWidth:canvas.width,transform:cssTransform,
+    typeSize:getComputedStyle(document.querySelector('.graph-node strong')).fontSize,
+    bodyOverflow:document.documentElement.scrollWidth-document.documentElement.clientWidth};
+  });
+  assert.ok(measures.rootWidth>=Math.min(width-44,2048),'conteneur trop étroit : '+width+'px / '+measures.rootWidth);
+  assert.ok(measures.canvasWidth>=width*.64,'graphe trop étroit : '+width+'px / '+measures.canvasWidth);
+  assert.ok(measures.bodyOverflow<=1,'débordement de la page : '+width);
+  assert.equal(await page.locator('#zoomValue').innerText(),'100 %');
+  assert.doesNotMatch(measures.transform,/scale\(/,'le texte ne doit pas être rasterisé à un zoom par défaut');
+  assert.ok(Number.parseFloat(measures.typeSize)>=14);
+  await page.locator('[data-select-path="0"]').click();
+  await page.locator('[data-select-path="0.1"]').click();
+  await page.locator('[data-select-path="0.1.1"]').click();
+  assert.equal(await page.locator('#zoomValue').innerText(),'100 %');
+  assert.doesNotMatch(await page.locator('#treePanel').evaluate(el=>el.style.transform),/scale\(/);
+  assert.equal(await page.locator('.tree-choice.is-chosen').count(),3);
+  if(width===1920){
+   await page.screenshot({path:'artifacts/decision-graph-sharp-wide-1920.png'});
+   const before=await page.locator('#graphViewport').evaluate(el=>el.clientWidth);
+   await page.locator('#togglePathPanel').click();
+   await page.waitForTimeout(80);
+   const after=await page.locator('#graphViewport').evaluate(el=>el.clientWidth);
+   assert.ok(after>=before+220,'le masquage du parcours ne libère pas la largeur');
+   assert.equal(await page.locator('#pathPanel').isVisible(),false);
+   assert.equal(await page.locator('#togglePathPanel').getAttribute('aria-expanded'),'false');
+   assert.equal(await page.locator('.tree-choice.is-chosen').count(),3);
+   await page.screenshot({path:'artifacts/decision-graph-sharp-full-width-1920.png'});
+   await page.locator('#togglePathPanel').click();
+   assert.equal(await page.locator('#pathPanel').isVisible(),true);
+   assert.equal(await page.locator('#decisionResult .result-links li').count(),2);
+  }
+  assert.deepEqual(errors,[]);
+  await page.close();
+ }
+});
+
+test('graphe net : translation alignée aux pixels physiques à DPR 2',async()=>{
+ const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:2});
+ await page.goto(url+'decision-tree.html',{waitUntil:'networkidle'});
+ await page.locator('[data-select-path="0"]').waitFor();
+ await page.locator('[data-select-path="0"]').click();
+ const actual=await page.locator('#treePanel').evaluate(el=>{
+  const s=el.style.transform;
+  const m=s.match(/translate\((-?[\d.]+)px,\s*(-?[\d.]+)px\)/);
+  return {transform:s,tx:m?Number(m[1]):NaN,ty:m?Number(m[2]):NaN};
+ });
+ assert.doesNotMatch(actual.transform,/scale\(/);
+ assert.ok(Number.isFinite(actual.tx)&&Number.isFinite(actual.ty));
+ assert.ok(Math.abs(actual.tx*2-Math.round(actual.tx*2))<.0001);
+ assert.ok(Math.abs(actual.ty*2-Math.round(actual.ty*2))<.0001);
+ await page.close();
+});
