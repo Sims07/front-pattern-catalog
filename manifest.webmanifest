@@ -1,7 +1,7 @@
 {
-  "name": "Front Pattern Catalog — web, mobile & serverless",
+  "name": "Front Pattern Catalog — web, mobile, CMS et serverless",
   "short_name": "Front Patterns",
-  "description": "15 architectures web et mobile : BFF REST, GraphQL, SSR, SSG, fonctions et workflows serverless, avec schémas verticaux détaillés.",
+  "description": "17 architectures web et mobile, CMS classique/headless, BFF REST/GraphQL, serverless et arbre de décision interactif.",
   "id": "./",
   "start_url": "./index.html",
   "scope": "./",
@@ -31,6 +31,14 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Arbre de décision",
+      "short_name": "Aide au choix",
+      "description": "Explorer les branches de choix d'architecture",
+      "url": "./decision-tree.html"
     }
   ]
 }
