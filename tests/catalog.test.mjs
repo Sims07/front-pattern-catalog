@@ -11,7 +11,7 @@ const ids = new Set();
 const tags = new Set(['direct', 'bff-rest', 'bff-graphql', 'graphql', 'serverless', 'rendering']);
 
 test('catalogue: 10 patterns et IDs uniques', () => {
-  assert.ok(catalog.patterns.length >= 15);
+  assert.ok(catalog.patterns.length >= 17);
   for (const p of catalog.patterns) {
     assert.match(p.id, /^[a-z0-9-]+$/);
     assert.ok(!ids.has(p.id), 'Identifiant doublon : ' + p.id);
@@ -51,8 +51,8 @@ test('site autonome, accessible, manifest et cache hors ligne cohérents', () =>
   assert.match(html, /id="comparison"/);
   assert.match(html, /<dialog/);
   assert.match(html, /fetch\("\.\/patterns\.json"/);
-  assert.match(sw, /front-patterns-v2/);
-  for (const path of ['index.html','patterns.json','diagrams.js','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png']) {
+  assert.match(sw, /front-patterns-v3/);
+  for (const path of ['index.html','patterns.json','diagrams.js','decision-tree.html','decision-tree.js','decision-tree.json','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png']) {
     assert.match(sw, new RegExp(path.replaceAll('.', '\\.')));
   }
   assert.equal(manifest.scope, './');
@@ -156,4 +156,59 @@ test('service worker conserve les données et le moteur des schémas hors-ligne'
   const sw=read('sw.js');
   assert.match(sw,/\.\/diagrams\.js/);
   assert.match(sw,/\.\/patterns\.json/);
+});
+
+test('les architectures CMS couplé et CMS headless sont distinctes et documentées', () => {
+  const traditional=catalog.patterns.find(p=>p.id==='cms-coupled');
+  const headless=catalog.patterns.find(p=>p.id==='cms-headless');
+  assert.ok(traditional && headless);
+  assert.ok(traditional.tags.includes('cms')&&headless.tags.includes('cms'));
+  assert.ok(!traditional.audience.includes('mobile'));
+  assert.ok(headless.audience.includes('mobile'));
+  assert.ok(headless.architecture.stages.some(s=>s.nodes.some(n=>n.id==='api')));
+  assert.ok(headless.architecture.links.some(l=>l.from==='admin'&&l.to==='hook'));
+  assert.ok(traditional.architecture.links.some(l=>l.to==='render'));
+});
+test('l arbre de décision est complet, sans cycle, et recommande les 17 architectures', () => {
+  const tree=JSON.parse(read('decision-tree.json'));
+  const names=new Set(catalog.patterns.map(p=>p.id));
+  const reached=new Set(),recommended=new Set(),visiting=new Set();
+  function visit(id){
+    assert.ok(tree.nodes[id], 'branche inconnue: '+id);
+    assert.ok(!visiting.has(id),'cycle détecté: '+id);
+    if(reached.has(id))return;
+    visiting.add(id);
+    const node=tree.nodes[id];
+    assert.ok(node.title&&node.help&&node.choices.length>=2, 'question incomplète '+id);
+    for(const choice of node.choices){
+      assert.ok(choice.label&&choice.detail, 'choix incomplet : '+id);
+      assert.notEqual(Boolean(choice.to),Boolean(choice.patterns),'cible ou résultats attendus : '+id);
+      if(choice.to)visit(choice.to);
+      else for(const pattern of choice.patterns){
+        assert.ok(names.has(pattern),'pattern inconnu : '+pattern);
+        recommended.add(pattern);
+      }
+    }
+    visiting.delete(id);reached.add(id);
+  }
+  visit(tree.start);
+  assert.equal(reached.size,Object.keys(tree.nodes).length);
+  assert.equal(recommended.size,names.size,'certaines architectures sont inaccessibles');
+});
+test('les ressources et liens vers arbre/compare sont intégrés au PWA', () => {
+  const h=read('index.html'),sw=read('sw.js'),d=read('decision-tree.html');
+  const js=read('decision-tree.js');
+  assert.match(h,/id="compareTray"/);
+  assert.match(h,/id="launchCompare"/);
+  assert.match(h,/id="comparison"/);
+  assert.match(h,/decision-tree\.html/);
+  assert.match(h,/openFromHash\(\)/);
+  assert.match(h,/data-filter="cms"/);
+  assert.match(d,/id="treePanel"/);
+  assert.match(d,/decision-tree\.js/);
+  assert.match(js,/index\.html#compare=/);
+  assert.doesNotThrow(()=>new Function(js));
+  for(const path of ['decision-tree.html','decision-tree.js','decision-tree.json']){
+    assert.ok(sw.includes('./'+path),path+' absent cache PWA');
+  }
 });
