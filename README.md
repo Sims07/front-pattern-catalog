@@ -19,6 +19,8 @@ Catalogue pédagogique de **19 architectures frontend**, pour architectes soluti
 
 **Distinction architecturale :** `client-side only` et `offline-first` décrivent des approches applicatives ; `localStorage` et `IndexedDB` sont des choix de persistance substituables derrière une frontière de stockage. Le terme *local-first* possède un sens plus large dans la littérature (propriété des données, disponibilité hors ligne, collaboration et synchronisation éventuelles) : un simple stockage local n'implique pas ces capacités. Voir [Ink & Switch — Local-first software](https://www.inkandswitch.com/essay/local-first/). Les exemples et schémas des fiches restent indépendants d'une application réelle.
 
+**Convention de diagramme :** un écran, des formulaires, des vues ou des règles internes ne constituent pas automatiquement des composants d’architecture séparés. Pour les applications exécutées entièrement dans le navigateur, le diagramme ne doit montrer que les **frontières réelles** (distribution statique → application UI + métier → stockage navigateur, et éventuellement export ou cache offline). Un port de persistance est une abstraction de code, pas un nouveau service déployé. **La clarté prime sur un nombre minimum de briques.**
+
 **Un pattern n'est pas une stack exclusive :** le mode de rendu (SSR/SSG/CSR), le contrat API (REST/GraphQL), la frontière BFF et l'hébergement (serverless ou non) sont des dimensions souvent combinables.
 
 ## L'interface

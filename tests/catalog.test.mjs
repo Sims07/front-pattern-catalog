@@ -51,7 +51,7 @@ test('site autonome, accessible, manifest et cache hors ligne cohérents', () =>
   assert.match(html, /id="comparison"/);
   assert.match(html, /<dialog/);
   assert.match(html, /fetch\("\.\/patterns\.json"/);
-  assert.match(sw, /front-patterns-v10/);
+  assert.match(sw, /front-patterns-v11/);
   for (const path of ['index.html','patterns.json','diagrams.js','decision-tree.html','decision-tree.js','decision-tree.json','pattern.html','pattern-detail.js','pattern-detail.css','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png']) {
     assert.match(sw, new RegExp(path.replaceAll('.', '\\.')));
   }
@@ -84,9 +84,9 @@ test('19 parcours pédagogiques avec canaux et étapes', () => {
     assert.ok(p.mobileNote.length > 35, p.id + ': manque information mobile');
     assert.ok(p.preview.length >= 4, p.id + ': aperçu incomplet');
     const stages=p.architecture.stages;
-    assert.ok(stages.length >= 4, p.id + ': pas assez de couches');
+    assert.ok(stages.length >= (p.tags.includes('local-first')?3:4), p.id + ': pas assez de couches');
     const nodes=stages.flatMap(s=>s.nodes);
-    assert.ok(nodes.length >= 6, p.id + ': moins de 6 briques');
+    assert.ok(nodes.length >= (p.tags.includes('local-first')?3:6), p.id + ': diagramme sans composants suffisants');
     const names = new Set();
     for(const n of nodes) {
       assert.ok(n.name && n.detail, p.id + ': nœud sans légende');
@@ -94,7 +94,7 @@ test('19 parcours pédagogiques avec canaux et étapes', () => {
       assert.ok(!names.has(n.id),p.id + ': id nœud dupliqué ' + n.id);
       names.add(n.id);
     }
-    assert.ok(p.architecture.links.length >= 4,p.id + ': pas assez de liaisons');
+    assert.ok(p.architecture.links.length >= (p.tags.includes('local-first')?2:4),p.id + ': pas assez de liaisons');
     for(const l of p.architecture.links) {
       assert.ok(names.has(l.from),p.id + ': liaison départ inconnue ' + l.from);
       assert.ok(names.has(l.to),p.id + ': liaison arrivée inconnue ' + l.to);
@@ -367,7 +367,7 @@ test('orientation : local-first accessible depuis catalogue et assistant',()=>{
  assert.match(html,/pwa-indexeddb/);
  assert.match(html,/spa-localstorage/);
  assert.match(html,/Sans backend ≠ sans persistance/);
- assert.match(read('sw.js'),/front-patterns-v10/);
+ assert.match(read('sw.js'),/front-patterns-v11/);
 });
 
 test('arbre : choix sans backend et comparaison des stockages',()=>{
@@ -393,7 +393,31 @@ test('fiches et documentation génériques, sans domaine métier propriétaire',
  const local=catalog.patterns.filter(p=>p.tags.includes('local-first'));
  for(const p of local){
   const labels=p.architecture.stages.flatMap(s=>s.nodes.map(n=>n.name));
-  assert.ok(labels.some(x=>/Port de persistance/.test(x)),'frontière de persistance absente : '+p.id);
+  assert.equal(p.architecture.stages.flatMap(stage=>stage.nodes).filter(n=>n.kind==='client').length,1,
+   'Une application autonome ne doit pas être dédoublée en composants UI artificiels : '+p.id);
+  assert.ok(!labels.some(x=>/Espace de travail|Vues et recherches|Port de persistance|Règles métier|Modèle métier|Index \+ transactions/.test(x)),
+   'Une vue ou une abstraction interne ne doit pas être présentée comme service déployé : '+p.id);
+  assert.ok(p.architecture.stages.length<=3,'Le diagramme local ne doit pas être artificiellement étendu : '+p.id);
+  assert.ok(p.architecture.stages.flatMap(stage=>stage.nodes).length<=5,'Ne pas ajouter de briques fictives : '+p.id);
   assert.ok(p.example.length>=25);
+ }
+});
+
+test('architecture locale : flux simples et composants authentiques',()=>{
+ const standalone=catalog.patterns.find(p=>p.id==='spa-localstorage');
+ const offline=catalog.patterns.find(p=>p.id==='pwa-indexeddb');
+ const ids=p=>p.architecture.stages.flatMap(s=>s.nodes).map(n=>n.id);
+ assert.deepEqual(ids(standalone),['static','app','storage','file']);
+ assert.deepEqual(standalone.architecture.links.map(e=>[e.from,e.to]),
+   [['static','app'],['app','storage'],['app','file']]);
+ assert.equal(standalone.architecture.stages.length,3);
+ assert.deepEqual(ids(offline),['static','app','storage','sw','file']);
+ assert.deepEqual(offline.architecture.links.map(e=>[e.from,e.to]),
+   [['static','app'],['app','storage'],['app','sw'],['app','file']]);
+ assert.ok(!ids(standalone).includes('sw'),'Le service worker est facultatif pour une SPA autonome');
+ assert.ok(offline.architecture.stages.some(s=>s.nodes.some(n=>n.name==='Service worker + cache')));
+ for(const p of [standalone,offline]){
+   assert.ok(p.architecture.stages.some(s=>s.nodes.some(n=>n.detail.includes('Interface + logique métier'))));
+   assert.ok(p.architecture.transverse.some(s=>/abstraction|adaptateur/.test(s)));
  }
 });
