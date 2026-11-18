@@ -12,7 +12,7 @@ test('desktop : une fiche se lit sur une page complète, jamais dans une popup',
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(url,{waitUntil:'networkidle'});
  await page.locator('.pattern').first().waitFor();
- assert.equal(await page.locator('.pattern').count(),17);
+ assert.equal(await page.locator('.pattern').count(),19);
  assert.equal(await page.locator('#detail').count(),0);
  await page.getByRole('button',{name:'Serverless',exact:true}).click();
  await page.locator('#pattern-serverless-async a.detail').click();
@@ -172,7 +172,7 @@ test('cartes : aucun défilement interne du teaser sur toutes les tailles et tou
   await page.setViewportSize({width,height:900});
   await page.goto(url,{waitUntil:'networkidle'});
   await page.locator('.pattern').first().waitFor();
-  assert.equal(await page.locator('.pattern').count(),17);
+  assert.equal(await page.locator('.pattern').count(),19);
   const result=await page.locator('.pattern').evaluateAll(cards=>cards.map(card=>{
     const preview=card.querySelector('.card-preview');
     const flow=preview.querySelector('.card-preview-flow');
@@ -321,5 +321,70 @@ test('graphe net : translation alignée aux pixels physiques à DPR 2',async()=>
  assert.ok(Number.isFinite(actual.tx)&&Number.isFinite(actual.ty));
  assert.ok(Math.abs(actual.tx*2-Math.round(actual.tx*2))<.0001);
  assert.ok(Math.abs(actual.ty*2-Math.round(actual.ty*2))<.0001);
+ await page.close();
+});
+
+
+test('patterns sans backend : filtre, assistant, fiches détaillées, comparaison et mobile',async()=>{
+ const page=await browser.newPage({viewport:{width:1366,height:850}});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(url,{waitUntil:'networkidle'});
+ await page.locator('.pattern').first().waitFor();
+ await page.locator('[data-filter="local-first"]').click();
+ assert.equal(await page.locator('.pattern').count(),2);
+ assert.equal(await page.locator('#pattern-spa-localstorage').count(),1);
+ assert.equal(await page.locator('#pattern-pwa-indexeddb').count(),1);
+ await page.locator('#pattern-spa-localstorage [data-compare]').check();
+ await page.locator('#pattern-pwa-indexeddb [data-compare]').check();
+ await page.locator('#launchCompare').click();
+ assert.equal(await page.locator('#comparison thead th').count(),3);
+ await page.locator('#closeComparison').click();
+ await page.locator('#pattern-spa-localstorage .detail').click();
+ await page.waitForURL('**/pattern.html?id=spa-localstorage');
+ assert.equal(await page.locator('.architecture-svg').count(),1);
+ assert.equal(await page.locator('dialog').count(),0);
+ assert.ok(await page.getByText('Enterprise Capacity Mapper').count()>=1);
+ assert.ok(await page.locator('.arch-node').count()>=6);
+ await page.getByRole('link',{name:'Toutes les architectures'}).click();
+ await page.locator('#dataSource').selectOption('local-rich');
+ assert.match(await page.locator('#suggestTitle').innerText(),/IndexedDB/);
+ assert.equal(await page.locator('#aggregation').isDisabled(),true);
+ await page.locator('#suggestOpen').click();
+ await page.waitForURL('**/pattern.html?id=pwa-indexeddb');
+ assert.equal(await page.locator('.architecture-svg').count(),1);
+ assert.ok(await page.getByText('Service worker + cache').count()>=1);
+ assert.deepEqual(errors,[]);
+ await page.close();
+ const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true,deviceScaleFactor:1});
+ await mobile.goto(url,{waitUntil:'networkidle'});
+ await mobile.locator('[data-filter="local-first"]').click();
+ assert.equal(await mobile.locator('.pattern').count(),2);
+ assert.equal(await mobile.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth),0);
+ await mobile.screenshot({path:'artifacts/local-first-cards-mobile.png'});
+ await mobile.close();
+});
+
+test('arbre de décision local-first : retour fiche et comparaison du stockage',async()=>{
+ const page=await browser.newPage({viewport:{width:1440,height:930}});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(url+'decision-tree.html',{waitUntil:'networkidle'});
+ await page.locator('[data-select-path="1.0.4.2"]').waitFor();
+ // Un graphe panoramique peut avoir une partie des choix hors écran :
+ // on teste la sélection événementielle sans forcer le viewport à changer.
+ await page.locator('[data-select-path="1.0.4.2"]').evaluate(el=>el.click());
+ assert.match(page.url(),/#path=1\.0\.4\.2$/);
+ assert.equal(await page.locator('.tree-choice.is-chosen').count(),4);
+ assert.equal(await page.locator('#decisionResult .result-links li').count(),2);
+ assert.match(await page.locator('#decisionResult').innerText(),/localStorage/);
+ assert.match(await page.locator('#decisionResult').innerText(),/IndexedDB/);
+ await page.locator('#decisionResult .result-links a').first().click();
+ await page.waitForURL('**/pattern.html?id=spa-localstorage&treePath=1.0.4.2');
+ await page.locator('.controls a').filter({hasText:'Retour à l’arbre de décision'}).click();
+ await page.waitForURL('**/decision-tree.html#path=1.0.4.2');
+ assert.equal(await page.locator('.tree-choice.is-chosen').count(),4);
+ await page.locator('#decisionResult .result-compare').click();
+ await page.waitForURL('**/index.html#compare=spa-localstorage,pwa-indexeddb');
+ assert.equal(await page.locator('#comparison thead th').count(),3);
+ assert.deepEqual(errors,[]);
  await page.close();
 });
