@@ -344,7 +344,12 @@ test('patterns sans backend : filtre, assistant, fiches détaillées, comparaiso
  assert.equal(await page.locator('.architecture-svg').count(),1);
  assert.equal(await page.locator('dialog').count(),0);
  assert.ok(await page.getByText(/Éditeur personnel de documents ou de paramètres/).count()>=1);
- assert.ok(await page.locator('.arch-node').count()>=6);
+ assert.equal(await page.locator('.arch-node').count(),4);
+ assert.equal(await page.locator('.architecture-svg .arch-node-client').count(),1);
+ assert.equal(await page.locator('.architecture-svg .arch-node-data').count(),2);
+ assert.ok(await page.getByText('Application web (SPA)',{exact:true}).count()>=1);
+ assert.equal(await page.getByText('Espace de travail',{exact:true}).count(),0);
+ await page.screenshot({path:'artifacts/browser-only-simple-architecture-desktop.png'});
  await page.getByRole('link',{name:'Toutes les architectures'}).click();
  await page.locator('#dataSource').selectOption('local-rich');
  assert.match(await page.locator('#suggestTitle').innerText(),/offline-first/);
@@ -353,7 +358,11 @@ test('patterns sans backend : filtre, assistant, fiches détaillées, comparaiso
  await page.locator('#suggestOpen').click();
  await page.waitForURL('**/pattern.html?id=pwa-indexeddb');
  assert.equal(await page.locator('.architecture-svg').count(),1);
+ assert.equal(await page.locator('.arch-node').count(),5);
+ assert.equal(await page.locator('.architecture-svg .arch-node-client').count(),1);
  assert.ok(await page.getByText('Service worker + cache').count()>=1);
+ assert.equal(await page.getByText('Vues et recherches',{exact:true}).count(),0);
+ await page.screenshot({path:'artifacts/browser-only-offline-architecture-desktop.png'});
  assert.deepEqual(errors,[]);
  await page.close();
  const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true,deviceScaleFactor:1});
