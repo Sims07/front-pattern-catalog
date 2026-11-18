@@ -51,7 +51,7 @@ test('site autonome, accessible, manifest et cache hors ligne cohérents', () =>
   assert.match(html, /id="comparison"/);
   assert.match(html, /<dialog/);
   assert.match(html, /fetch\("\.\/patterns\.json"/);
-  assert.match(sw, /front-patterns-v9/);
+  assert.match(sw, /front-patterns-v10/);
   for (const path of ['index.html','patterns.json','diagrams.js','decision-tree.html','decision-tree.js','decision-tree.json','pattern.html','pattern-detail.js','pattern-detail.css','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png']) {
     assert.match(sw, new RegExp(path.replaceAll('.', '\\.')));
   }
@@ -339,7 +339,16 @@ test('local-first : deux architectures sans backend, distinctes et complètes',(
  }
  const small=local[0],rich=local[1];
  assert.match(small.steps.join(' '),/localStorage/);
- assert.match(small.example,/Enterprise Capacity Mapper/);
+ assert.match(small.example,/Éditeur personnel/);
+ assert.match(small.title,/Application web autonome/);
+ assert.match(rich.title,/offline-first/);
+ assert.match(rich.subtitle,/IndexedDB/);
+ for(const p of local){
+  const serialized=JSON.stringify(p);
+  assert.doesNotMatch(serialized,/cartograph|N0\s*\/\s*N1|Enterprise Capacity Mapper/i,p.id+': référence à un projet particulier');
+  assert.doesNotMatch(serialized,/\b(?:React|Vue|Angular)\b/i,p.id+': architecture non agnostique au framework');
+ }
+ assert.match(JSON.stringify(catalog.sources),/ink-switch-local-first/);
  assert.match(rich.steps.join(' '),/IndexedDB/);
  assert.match(rich.steps.join(' '),/asynchrones/);
  assert.match(rich.steps.join(' '),/service worker/);
@@ -358,7 +367,7 @@ test('orientation : local-first accessible depuis catalogue et assistant',()=>{
  assert.match(html,/pwa-indexeddb/);
  assert.match(html,/spa-localstorage/);
  assert.match(html,/Sans backend ≠ sans persistance/);
- assert.match(read('sw.js'),/front-patterns-v9/);
+ assert.match(read('sw.js'),/front-patterns-v10/);
 });
 
 test('arbre : choix sans backend et comparaison des stockages',()=>{
@@ -370,5 +379,21 @@ test('arbre : choix sans backend et comparaison des stockages',()=>{
  assert.deepEqual(choices[0].patterns,['spa-localstorage']);
  assert.deepEqual(choices[1].patterns,['pwa-indexeddb']);
  assert.deepEqual(choices[2].patterns,['spa-localstorage','pwa-indexeddb']);
- assert.match(choices[0].why,/Enterprise Capacity Mapper/);
+ assert.match(choices[0].why,/application autonome côté navigateur/);
+ assert.doesNotMatch(JSON.stringify(tree),/cartograph|Enterprise Capacity Mapper/i);
+});
+
+
+test('fiches et documentation génériques, sans domaine métier propriétaire',()=>{
+ const publicFiles=['patterns.json','decision-tree.json','README.md','index.html'];
+ for(const path of publicFiles){
+  const content=read(path);
+  assert.doesNotMatch(content,/Enterprise Capacity Mapper|enterprise-capacity-mapper|Éditeur de cartographies|N0 \/ N1 \/ applications/i,path+' ne doit citer aucune application particulière');
+ }
+ const local=catalog.patterns.filter(p=>p.tags.includes('local-first'));
+ for(const p of local){
+  const labels=p.architecture.stages.flatMap(s=>s.nodes.map(n=>n.name));
+  assert.ok(labels.some(x=>/Port de persistance/.test(x)),'frontière de persistance absente : '+p.id);
+  assert.ok(p.example.length>=25);
+ }
 });

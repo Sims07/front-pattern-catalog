@@ -185,7 +185,7 @@ body.has-compare-tray{padding-bottom:138px}
 <section class="hero"><div class="wrap hero-grid">
  <div><span class="eyebrow">Référentiel d'architecture · Frontend & BFF</span>
   <h1>Quel front ?<br><em>Quelle architecture ?</em></h1>
-  <p>Du site web à l’application mobile, des applications autonomes local-first aux BFF et fonctions serverless : découvre chaque architecture avec des explications simples, puis approfondis ses composants et ses flux.</p>
+  <p>Du site web à l’application mobile, des applications autonomes et offline-first aux BFF et fonctions serverless : découvre chaque architecture avec des explications simples, puis approfondis ses composants et ses flux.</p>
   <div class="hero-actions"><a class="btn primary" href="#catalogue">Explorer les patterns ↓</a><a class="btn" href="./decision-tree.html">Arbre de décision ↗</a><a class="btn" href="#repères">Comprendre les choix</a></div>
   <div class="quick-facts"><div><strong id="totalCount">19</strong><span>Architectures expliquées</span></div><div><strong>2</strong><span>Canaux web et mobile</span></div><div><strong>ADR</strong><span>Export Markdown</span></div></div>
  </div>
@@ -193,7 +193,7 @@ body.has-compare-tray{padding-bottom:138px}
   <div class="panel-head"><strong>Quel pattern envisager ?</strong><span>Guide indicatif</span></div>
   <div class="select-grid">
    <label class="field">Source des données métier ?
-     <select id="dataSource"><option value="api">APIs distantes / services</option><option value="local-simple">Local simple (localStorage)</option><option value="local-rich">Local structuré (IndexedDB)</option></select></label>
+     <select id="dataSource"><option value="api">APIs distantes / services</option><option value="local-simple">Local simple (variante localStorage)</option><option value="local-rich">Local structuré (variante IndexedDB)</option></select></label>
     <label class="field">Composition de plusieurs APIs ?
     <select id="aggregation"><option value="no">Faible / non</option><option value="yes">Oui, plusieurs sources</option></select></label>
    <label class="field">Jetons OAuth hors du navigateur ?
@@ -221,7 +221,7 @@ body.has-compare-tray{padding-bottom:138px}
   <input class="search" id="search" type="search" placeholder="Rechercher : localStorage, IndexedDB, REST, GraphQL…" aria-label="Rechercher des patterns">
   <button class="chip" type="button" data-filter="all" aria-pressed="true">Tous</button>
   <button class="chip" type="button" data-filter="direct" aria-pressed="false">Sans BFF</button>
-   <button class="chip" type="button" data-filter="local-first" aria-pressed="false">Sans backend · local-first</button>
+   <button class="chip" type="button" data-filter="local-first" aria-pressed="false">Sans backend · stockage local</button>
   <button class="chip" type="button" data-filter="bff-rest" aria-pressed="false">BFF REST</button>
   <button class="chip" type="button" data-filter="bff-graphql" aria-pressed="false">BFF GraphQL</button>
   <button class="chip" type="button" data-filter="serverless" aria-pressed="false">Serverless</button>
@@ -245,7 +245,7 @@ body.has-compare-tray{padding-bottom:138px}
  <span class="eyebrow">02 / Principes de décision</span><h2 id="guideTitle">Quatre distinctions essentielles</h2>
  <div class="guide-grid">
   <article class="guide"><div class="stripe"></div><h3>BFF ≠ API Gateway</h3><p>Un BFF porte un contrat adapté à une expérience et souvent la session OAuth. Une gateway est un point d'entrée transversal : elle peut coexister avec le BFF sans le remplacer.</p></article>
-  <article class="guide"><div class="stripe"></div><h3>Sans backend ≠ sans persistance</h3><p>Une SPA/PWA peut conserver les modèles métier dans <strong>localStorage</strong> ou <strong>IndexedDB</strong>. Le service worker met en cache les ressources de la PWA, pas les cartographies. Prévoir quotas, export de sauvegarde et éventuellement migration de schéma.</p></article>
+  <article class="guide"><div class="stripe"></div><h3>Sans backend ≠ sans persistance</h3><p>Une application web autonome peut conserver ses données dans <strong>localStorage</strong> ou <strong>IndexedDB</strong>. Le service worker peut mettre en cache les ressources de la PWA, pas les données métier. Prévoir quotas, export de sauvegarde et éventuellement migration de schéma.</p></article>
    <article class="guide"><div class="stripe"></div><h3>GraphQL ≠ BFF obligatoire</h3><p>Une API GraphQL peut être directement mutualisée, ou constituer un BFF dédié. Le choix du protocole et celui de la frontière applicative sont indépendants.</p></article>
   <article class="guide"><div class="stripe"></div><h3>Serverless ≠ sans backend</h3><p>Le CDN peut servir la SPA, tandis que des fonctions exécutent le BFF REST ou GraphQL. « Serverless » décrit avant tout un modèle d'exécution et d'exploitation.</p></article>
  </div>

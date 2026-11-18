@@ -371,33 +371,33 @@
       ]
     },
     "local-data": {
-      "title": "Quel type de données faut-il conserver dans le navigateur ?",
-      "help": "localStorage est synchrone et limité ; IndexedDB stocke des volumes structurés de manière asynchrone. Le mode PWA hors ligne concerne aussi le cache des ressources.",
+      "title": "Quel besoin de persistance locale faut-il couvrir ?",
+      "help": "Distinguer l’architecture sans backend des choix de stockage. localStorage et IndexedDB sont deux variantes possibles derrière un port de persistance.",
       "choices": [
         {
           "label": "Un modèle JSON ou des préférences de taille modérée",
-          "detail": "Cartographies personnelles, paramètres et sauvegardes simples",
+          "detail": "Petits documents, paramètres ou état métier sérialisé",
           "patterns": [
             "spa-localstorage"
           ],
-          "why": "Une SPA autonome + localStorage couvre ces besoins sans backend. C'est l'architecture de stockage actuellement utilisée par Enterprise Capacity Mapper : prévoir export/import, versionnement et limites du navigateur."
+          "why": "Pour une application autonome côté navigateur avec un modèle JSON modéré, la variante localStorage est simple. Prévoir quotas, migrations, sauvegarde exportable et absence de synchronisation."
         },
         {
           "label": "Des objets structurés, index et fichiers volumineux",
-          "detail": "Recherche locale, données nombreuses, images ou pièces jointes",
+          "detail": "Entités nombreuses, index de recherche, objets ou fichiers",
           "patterns": [
             "pwa-indexeddb"
           ],
-          "why": "IndexedDB privilégie les lectures/écritures asynchrones, les transactions et les index. Une PWA peut stocker ses ressources séparément pour l'usage hors ligne."
+          "why": "Pour une PWA offline-first conservant des entités, indexes ou fichiers, IndexedDB propose des transactions asynchrones. Le service worker garde les ressources, séparément des données métier."
         },
         {
           "label": "Le choix du stockage est encore à arbitrer",
-          "detail": "Comparer simplicité, volume, performances et durabilité",
+          "detail": "Comparer la variante simple et celle à données structurées",
           "patterns": [
             "spa-localstorage",
             "pwa-indexeddb"
           ],
-          "why": "Les deux architectures sont sans backend métier. Comparer surtout volume, opérations synchrones/asynchrones, schéma, récupération et sauvegardes."
+          "why": "Les deux fiches décrivent des architectures web autonomes. Le choix localStorage ou IndexedDB est une décision de persistance, non une frontière d’architecture indépendante."
         }
       ]
     }
