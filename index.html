@@ -185,14 +185,16 @@ body.has-compare-tray{padding-bottom:138px}
 <section class="hero"><div class="wrap hero-grid">
  <div><span class="eyebrow">Référentiel d'architecture · Frontend & BFF</span>
   <h1>Quel front ?<br><em>Quelle architecture ?</em></h1>
-  <p>Du site web à l’application mobile, du BFF REST ou GraphQL aux fonctions serverless : découvre chaque architecture avec des explications simples, puis approfondis ses composants et ses flux.</p>
+  <p>Du site web à l’application mobile, des applications autonomes local-first aux BFF et fonctions serverless : découvre chaque architecture avec des explications simples, puis approfondis ses composants et ses flux.</p>
   <div class="hero-actions"><a class="btn primary" href="#catalogue">Explorer les patterns ↓</a><a class="btn" href="./decision-tree.html">Arbre de décision ↗</a><a class="btn" href="#repères">Comprendre les choix</a></div>
-  <div class="quick-facts"><div><strong id="totalCount">17</strong><span>Architectures expliquées</span></div><div><strong>2</strong><span>Canaux web et mobile</span></div><div><strong>ADR</strong><span>Export Markdown</span></div></div>
+  <div class="quick-facts"><div><strong id="totalCount">19</strong><span>Architectures expliquées</span></div><div><strong>2</strong><span>Canaux web et mobile</span></div><div><strong>ADR</strong><span>Export Markdown</span></div></div>
  </div>
  <aside class="hero-panel" aria-label="Assistant d'orientation">
   <div class="panel-head"><strong>Quel pattern envisager ?</strong><span>Guide indicatif</span></div>
   <div class="select-grid">
-   <label class="field">Composition de plusieurs APIs ?
+   <label class="field">Source des données métier ?
+     <select id="dataSource"><option value="api">APIs distantes / services</option><option value="local-simple">Local simple (localStorage)</option><option value="local-rich">Local structuré (IndexedDB)</option></select></label>
+    <label class="field">Composition de plusieurs APIs ?
     <select id="aggregation"><option value="no">Faible / non</option><option value="yes">Oui, plusieurs sources</option></select></label>
    <label class="field">Jetons OAuth hors du navigateur ?
     <select id="secure"><option value="yes">Oui, souhaité</option><option value="no">Non, client public possible</option></select></label>
@@ -216,9 +218,10 @@ body.has-compare-tray{padding-bottom:138px}
 <section id="catalogue" aria-labelledby="catalogTitle">
  <div class="intro"><div><span class="eyebrow">01 / Patterns applicatifs</span><h2 id="catalogTitle">Explorer les architectures</h2><p>Chaque carte présente un parcours simplifié de gauche à droite. Ouvre une fiche pour explorer son schéma technique de haut en bas, avec tous les composants et les liaisons.</p></div><span class="counter" id="resultCount" aria-live="polite"></span></div>
  <div class="filters" role="group" aria-label="Filtrer les patterns">
-  <input class="search" id="search" type="search" placeholder="Rechercher : REST, GraphQL, OAuth, SSR…" aria-label="Rechercher des patterns">
+  <input class="search" id="search" type="search" placeholder="Rechercher : localStorage, IndexedDB, REST, GraphQL…" aria-label="Rechercher des patterns">
   <button class="chip" type="button" data-filter="all" aria-pressed="true">Tous</button>
   <button class="chip" type="button" data-filter="direct" aria-pressed="false">Sans BFF</button>
+   <button class="chip" type="button" data-filter="local-first" aria-pressed="false">Sans backend · local-first</button>
   <button class="chip" type="button" data-filter="bff-rest" aria-pressed="false">BFF REST</button>
   <button class="chip" type="button" data-filter="bff-graphql" aria-pressed="false">BFF GraphQL</button>
   <button class="chip" type="button" data-filter="serverless" aria-pressed="false">Serverless</button>
@@ -239,10 +242,11 @@ body.has-compare-tray{padding-bottom:138px}
  <div class="compare-actions"><button class="btn small" type="button" id="clearCompare">Effacer la sélection</button><button class="btn primary small" type="button" id="copyCompare">Copier l’ADR Markdown</button></div>
 </dialog>
 <section class="guidance" id="repères" aria-labelledby="guideTitle">
- <span class="eyebrow">02 / Principes de décision</span><h2 id="guideTitle">Trois distinctions essentielles</h2>
+ <span class="eyebrow">02 / Principes de décision</span><h2 id="guideTitle">Quatre distinctions essentielles</h2>
  <div class="guide-grid">
   <article class="guide"><div class="stripe"></div><h3>BFF ≠ API Gateway</h3><p>Un BFF porte un contrat adapté à une expérience et souvent la session OAuth. Une gateway est un point d'entrée transversal : elle peut coexister avec le BFF sans le remplacer.</p></article>
-  <article class="guide"><div class="stripe"></div><h3>GraphQL ≠ BFF obligatoire</h3><p>Une API GraphQL peut être directement mutualisée, ou constituer un BFF dédié. Le choix du protocole et celui de la frontière applicative sont indépendants.</p></article>
+  <article class="guide"><div class="stripe"></div><h3>Sans backend ≠ sans persistance</h3><p>Une SPA/PWA peut conserver les modèles métier dans <strong>localStorage</strong> ou <strong>IndexedDB</strong>. Le service worker met en cache les ressources de la PWA, pas les cartographies. Prévoir quotas, export de sauvegarde et éventuellement migration de schéma.</p></article>
+   <article class="guide"><div class="stripe"></div><h3>GraphQL ≠ BFF obligatoire</h3><p>Une API GraphQL peut être directement mutualisée, ou constituer un BFF dédié. Le choix du protocole et celui de la frontière applicative sont indépendants.</p></article>
   <article class="guide"><div class="stripe"></div><h3>Serverless ≠ sans backend</h3><p>Le CDN peut servir la SPA, tandis que des fonctions exécutent le BFF REST ou GraphQL. « Serverless » décrit avant tout un modèle d'exécution et d'exploitation.</p></article>
  </div>
 </section>
@@ -343,22 +347,28 @@ function orient(){
  var sec=document.getElementById("secure").value==="yes";
  var dep=document.getElementById("deployment").value;
  var ch=document.getElementById("channel").value;
+ var dataSource=document.getElementById("dataSource").value;
+ var browserLocal=dataSource!=="api"&&ch==="web";
+ ["aggregation","secure","deployment"].forEach(function(key){document.getElementById(key).disabled=browserLocal});
  var id;
- if(dep==="seo")id=ch==="mobile"?"mobile-native-direct":"ssr-bff";
+ if(browserLocal)id=dataSource==="local-rich"?"pwa-indexeddb":"spa-localstorage";
+ else if(dep==="seo")id=ch==="mobile"?"mobile-native-direct":"ssr-bff";
  else if(dep==="serverless")id=(agg||sec)?"serverless-bff-rest":"serverless-direct";
  else if(ch==="mobile")id=agg?"multi-channel-bff":"mobile-native-direct";
  else if(ch==="both")id="multi-channel-bff";
  else id=(agg||sec)?"bff-rest":"spa-rest-direct";
  var p=find(id);if(!p)return;
  document.getElementById("suggestTitle").textContent=p.title;
- document.getElementById("suggestReason").textContent="Piste indicative : "+p.simple+" Valider selon identité, charge et ownership.";
+ document.getElementById("suggestReason").textContent="Piste indicative : "+p.simple+
+  (dataSource!=="api"&&ch!=="web"?" Le stockage navigateur présenté concerne Web/PWA ; choisir le canal Web pour cette variante.":"")+
+  " Valider selon confidentialité, données et exploitation.";
  document.getElementById("suggestOpen").dataset.open=id;
 }
 cards.addEventListener("change",function(e){if(e.target.matches("[data-compare]"))toggle(e.target.dataset.compare,e.target.checked)});
 document.querySelectorAll("[data-filter]").forEach(function(b){b.addEventListener("click",function(){filter=b.dataset.filter;document.querySelectorAll("[data-filter]").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});render()})});
 document.getElementById("search").addEventListener("input",function(e){search=e.target.value.trim().toLocaleLowerCase("fr");render()});
 document.getElementById("suggestOpen").addEventListener("click",function(e){openDetail(e.currentTarget.dataset.open)});
-["aggregation","secure","deployment","channel"].forEach(function(k){document.getElementById(k).addEventListener("change",orient)});
+["aggregation","secure","deployment","channel","dataSource"].forEach(function(k){document.getElementById(k).addEventListener("change",orient)});
 document.getElementById("clearCompare").addEventListener("click",function(){selected.clear();render()});
 document.getElementById("clearSelection").addEventListener("click",function(){selected.clear();render()});
 document.getElementById("launchCompare").addEventListener("click",openComparison);

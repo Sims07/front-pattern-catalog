@@ -1,5 +1,5 @@
 /* Service worker autonome ; scope limité au dossier front-pattern-catalog. */
-const VERSION = 'front-patterns-v8';
+const VERSION = 'front-patterns-v9';
 const SHELL = ['./', './index.html', './patterns.json', './diagrams.js', './decision-tree.html', './decision-tree.js', './decision-map.css', './decision-tree.json', './pattern.html', './pattern-detail.js', './pattern-detail.css', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(VERSION).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()));

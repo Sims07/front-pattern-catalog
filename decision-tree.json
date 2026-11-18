@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "start": "purpose",
   "intro": "Ce graphe aide à instruire une décision d'architecture. Les propositions sont indicatives : les contraintes de sécurité, de volumétrie, d'organisation et de déploiement restent à documenter dans un ADR.",
   "nodes": {
@@ -108,7 +108,7 @@
     },
     "web-purpose": {
       "title": "Quel est le besoin dominant du front web ?",
-      "help": "Le rendu des pages, l'intégration API et le découpage en équipes sont des décisions indépendantes.",
+      "help": "L'application peut fonctionner sans serveur métier, ou consommer des APIs et des ressources dynamiques. L'hébergement statique est un choix distinct.",
       "choices": [
         {
           "label": "Des pages qui doivent être pré-rendues",
@@ -133,6 +133,11 @@
           "label": "Un backend exécuté à la demande",
           "detail": "Peu d'exploitation de serveurs et trafic variable",
           "to": "serverless-purpose"
+        },
+        {
+          "label": "Une application autonome, sans backend métier",
+          "detail": "Modèles et documents conservés dans le navigateur, usage offline possible",
+          "to": "local-data"
         }
       ]
     },
@@ -362,6 +367,37 @@
             "serverless-bff-rest"
           ],
           "why": "Des functions HTTP conviennent à des actions bornées, éventuellement agrégées par un BFF."
+        }
+      ]
+    },
+    "local-data": {
+      "title": "Quel type de données faut-il conserver dans le navigateur ?",
+      "help": "localStorage est synchrone et limité ; IndexedDB stocke des volumes structurés de manière asynchrone. Le mode PWA hors ligne concerne aussi le cache des ressources.",
+      "choices": [
+        {
+          "label": "Un modèle JSON ou des préférences de taille modérée",
+          "detail": "Cartographies personnelles, paramètres et sauvegardes simples",
+          "patterns": [
+            "spa-localstorage"
+          ],
+          "why": "Une SPA autonome + localStorage couvre ces besoins sans backend. C'est l'architecture de stockage actuellement utilisée par Enterprise Capacity Mapper : prévoir export/import, versionnement et limites du navigateur."
+        },
+        {
+          "label": "Des objets structurés, index et fichiers volumineux",
+          "detail": "Recherche locale, données nombreuses, images ou pièces jointes",
+          "patterns": [
+            "pwa-indexeddb"
+          ],
+          "why": "IndexedDB privilégie les lectures/écritures asynchrones, les transactions et les index. Une PWA peut stocker ses ressources séparément pour l'usage hors ligne."
+        },
+        {
+          "label": "Le choix du stockage est encore à arbitrer",
+          "detail": "Comparer simplicité, volume, performances et durabilité",
+          "patterns": [
+            "spa-localstorage",
+            "pwa-indexeddb"
+          ],
+          "why": "Les deux architectures sont sans backend métier. Comparer surtout volume, opérations synchrones/asynchrones, schéma, récupération et sauvegardes."
         }
       ]
     }

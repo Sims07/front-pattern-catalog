@@ -8,10 +8,10 @@ const dir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(resolve(dir, p), 'utf8');
 const catalog = JSON.parse(read('patterns.json'));
 const ids = new Set();
-const tags = new Set(['direct', 'bff-rest', 'bff-graphql', 'graphql', 'serverless', 'rendering', 'cms']);
+const tags = new Set(['direct', 'bff-rest', 'bff-graphql', 'graphql', 'serverless', 'rendering', 'cms', 'local-first']);
 
-test('catalogue: 17 patterns et IDs uniques', () => {
-  assert.ok(catalog.patterns.length >= 17);
+test('catalogue: 19 patterns et IDs uniques', () => {
+  assert.equal(catalog.patterns.length, 19);
   for (const p of catalog.patterns) {
     assert.match(p.id, /^[a-z0-9-]+$/);
     assert.ok(!ids.has(p.id), 'Identifiant doublon : ' + p.id);
@@ -51,7 +51,7 @@ test('site autonome, accessible, manifest et cache hors ligne cohérents', () =>
   assert.match(html, /id="comparison"/);
   assert.match(html, /<dialog/);
   assert.match(html, /fetch\("\.\/patterns\.json"/);
-  assert.match(sw, /front-patterns-v8/);
+  assert.match(sw, /front-patterns-v9/);
   for (const path of ['index.html','patterns.json','diagrams.js','decision-tree.html','decision-tree.js','decision-tree.json','pattern.html','pattern-detail.js','pattern-detail.css','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png']) {
     assert.match(sw, new RegExp(path.replaceAll('.', '\\.')));
   }
@@ -72,7 +72,7 @@ test('le JavaScript inline est syntaxiquement valide', () => {
   for(const [,code] of scripts) assert.doesNotThrow(() => new Function(code));
 });
 
-test('17 parcours pédagogiques avec canaux et étapes', () => {
+test('19 parcours pédagogiques avec canaux et étapes', () => {
   const ids = new Set();
   const validKinds = new Set(['client','cdn','gateway','bff','service','data','security','event','build','observability']);
   for (const p of catalog.patterns) {
@@ -171,7 +171,7 @@ test('les architectures CMS couplé et CMS headless sont distinctes et document�
   assert.ok(headless.architecture.links.some(l=>l.from==='admin'&&l.to==='hook'));
   assert.ok(traditional.architecture.links.some(l=>l.to==='render'));
 });
-test('l arbre de décision est complet, sans cycle, et recommande les 17 architectures', () => {
+test('l arbre de décision est complet, sans cycle, et recommande les 19 architectures', () => {
   const tree=JSON.parse(read('decision-tree.json'));
   const names=new Set(catalog.patterns.map(p=>p.id));
   const reached=new Set(),recommended=new Set(),visiting=new Set();
@@ -264,7 +264,7 @@ test('PWA multipage : cache offline spécifique aux fiches et à l’arbre', () 
   assert.doesNotMatch(sw,/caches\.match\('\.\/index\.html'\)\)\);/);
 });
 
-test('aperçu des 17 cartes : 3 repères courts et une proposition de valeur', () => {
+test('aperçu des 19 cartes : 3 repères courts et une proposition de valeur', () => {
   const draw = requireVm();
   for(const p of catalog.patterns) {
     const teaser=p.cardPreview;
@@ -320,4 +320,55 @@ test('interface du graphe : zone large et textes à échelle native',()=>{
  assert.match(js,/pathPanel\.hidden=!visible/);
  assert.match(js,/togglePanel\.setAttribute\('aria-expanded'/);
  assert.doesNotThrow(()=>new Function(js));
+});
+
+
+test('local-first : deux architectures sans backend, distinctes et complètes',()=>{
+ const local=catalog.patterns.filter(p=>p.tags.includes('local-first'));
+ assert.deepEqual(local.map(p=>p.id),['spa-localstorage','pwa-indexeddb']);
+ assert.ok(local.every(p=>p.tags.includes('direct')));
+ assert.ok(local.every(p=>p.audience.length===1&&p.audience[0]==='web'));
+ for(const p of local){
+  const labels=p.architecture.stages.flatMap(s=>s.nodes.map(n=>n.name)).join(' ');
+  assert.doesNotMatch(labels,/API Gateway|BFF REST|backend distant/i,p.id+': fausse brique serveur');
+  assert.match(labels,/GitHub Pages|Hébergement statique/);
+  assert.match(p.implementation.join(' '),/export/i);
+  assert.match(p.tradeoffs.join(' '),/quota|stockage|synchronisation/i);
+  assert.ok(p.refs.includes('mdn-storage-quotas'));
+  assert.ok(p.cardPreview.steps.every(s=>s.length<=19));
+ }
+ const small=local[0],rich=local[1];
+ assert.match(small.steps.join(' '),/localStorage/);
+ assert.match(small.example,/Enterprise Capacity Mapper/);
+ assert.match(rich.steps.join(' '),/IndexedDB/);
+ assert.match(rich.steps.join(' '),/asynchrones/);
+ assert.match(rich.steps.join(' '),/service worker/);
+ assert.match(rich.implementation.join(' '),/Cache Storage/);
+ assert.match(rich.implementation.join(' '),/export/);
+ const terms=new Set(catalog.glossary.map(g=>g.term));
+ for(const term of ['localStorage','IndexedDB','Local-First','Service worker','Quota / éviction'])assert.ok(terms.has(term));
+});
+
+test('orientation : local-first accessible depuis catalogue et assistant',()=>{
+ const html=read('index.html');
+ assert.match(html,/data-filter="local-first"/);
+ assert.match(html,/id="dataSource"/);
+ assert.match(html,/value="local-simple"/);
+ assert.match(html,/value="local-rich"/);
+ assert.match(html,/pwa-indexeddb/);
+ assert.match(html,/spa-localstorage/);
+ assert.match(html,/Sans backend ≠ sans persistance/);
+ assert.match(read('sw.js'),/front-patterns-v9/);
+});
+
+test('arbre : choix sans backend et comparaison des stockages',()=>{
+ const tree=JSON.parse(read('decision-tree.json'));
+ const branch=tree.nodes['web-purpose'].choices.find(c=>c.to==='local-data');
+ assert.ok(branch);
+ const choices=tree.nodes['local-data'].choices;
+ assert.equal(choices.length,3);
+ assert.deepEqual(choices[0].patterns,['spa-localstorage']);
+ assert.deepEqual(choices[1].patterns,['pwa-indexeddb']);
+ assert.deepEqual(choices[2].patterns,['spa-localstorage','pwa-indexeddb']);
+ assert.match(choices[0].why,/Enterprise Capacity Mapper/);
 });
