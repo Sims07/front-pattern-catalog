@@ -51,7 +51,7 @@ test('site autonome, accessible, manifest et cache hors ligne cohérents', () =>
   assert.match(html, /id="comparison"/);
   assert.match(html, /<dialog/);
   assert.match(html, /fetch\("\.\/patterns\.json"/);
-  assert.match(sw, /front-patterns-v10/);
+  assert.match(sw, /front-patterns-v11/);
   for (const path of ['index.html','patterns.json','diagrams.js','decision-tree.html','decision-tree.js','decision-tree.json','pattern.html','pattern-detail.js','pattern-detail.css','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png']) {
     assert.match(sw, new RegExp(path.replaceAll('.', '\\.')));
   }
@@ -367,7 +367,7 @@ test('orientation : local-first accessible depuis catalogue et assistant',()=>{
  assert.match(html,/pwa-indexeddb/);
  assert.match(html,/spa-localstorage/);
  assert.match(html,/Sans backend ≠ sans persistance/);
- assert.match(read('sw.js'),/front-patterns-v10/);
+ assert.match(read('sw.js'),/front-patterns-v11/);
 });
 
 test('arbre : choix sans backend et comparaison des stockages',()=>{
