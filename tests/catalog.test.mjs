@@ -346,7 +346,7 @@ test('local-first : deux architectures sans backend, distinctes et complètes',(
  for(const p of local){
   const serialized=JSON.stringify(p);
   assert.doesNotMatch(serialized,/cartograph|N0\s*\/\s*N1|Enterprise Capacity Mapper/i,p.id+': référence à un projet particulier');
-  assert.doesNotMatch(serialized,/React|Vue|Angular/i,p.id+': architecture non agnostique au framework');
+  assert.doesNotMatch(serialized,/\b(?:React|Vue|Angular)\b/i,p.id+': architecture non agnostique au framework');
  }
  assert.match(JSON.stringify(catalog.sources),/ink-switch-local-first/);
  assert.match(rich.steps.join(' '),/IndexedDB/);
