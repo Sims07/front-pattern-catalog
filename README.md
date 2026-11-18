@@ -7,7 +7,8 @@ Catalogue pédagogique de **19 architectures frontend**, pour architectes soluti
 ## Patterns
 
 - **Direct (sans BFF)** : SPA/REST, SPA/GraphQL, mobile natif/REST, front statique + fonctions HTTP.
-- **Autonome / local-first (sans backend métier)** : SPA + localStorage pour des modèles JSON modérés ; PWA + IndexedDB pour des objets structurés et des transactions asynchrones. Les ressources peuvent être servies par GitHub Pages et mises en cache pour le mode hors ligne.
+- **Application web autonome (client-side only)** : un frontend sans backend métier, avec persistance côté navigateur. `localStorage` illustre une variante adaptée aux petits modèles JSON.
+- **PWA offline-first** : les opérations sont locales et le chargement hors connexion repose sur un cache de ressources ; `IndexedDB` illustre une variante de persistance structurée et asynchrone. Les deux approches sont possibles avec un hébergement statique.
 - **BFF** : REST web, GraphQL web, BFF distincts pour web et mobile, SSR + BFF.
 - **Rendu web** : CSR (navigateur), SSR (serveur), SSG (pages générées au build), SSR edge.
 - **Serverless** : Functions REST avec BFF, GraphQL managé + résolveurs, Functions directes, traitements asynchrones avec queue et DLQ, workflows orchestrés.
@@ -16,7 +17,7 @@ Catalogue pédagogique de **19 architectures frontend**, pour architectes soluti
 
 **Stockage local n'est pas cache PWA :** le service worker met en cache les ressources de l'application ; localStorage ou IndexedDB conserve les données métier. Le stockage reste attaché à l'origine et au profil du navigateur, sans synchronisation entre appareils, et peut être effacé (quota, éviction, action utilisateur). Pour les données importantes, prévoir des exports/restaurations. Voir [MDN — quotas et éviction](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria).
 
-**Exemple réel :** [Enterprise Capacity Mapper](https://github.com/Sims07/enterprise-capacity-mapper) utilise aujourd'hui localStorage pour ses modèles, sa bibliothèque et ses préférences, derrière un port `ModelRepository`, avec export/import JSON et migrations. L'adaptateur IndexedDB y est une évolution envisagée, pas son implémentation actuelle.
+**Distinction architecturale :** `client-side only` et `offline-first` décrivent des approches applicatives ; `localStorage` et `IndexedDB` sont des choix de persistance substituables derrière une frontière de stockage. Le terme *local-first* possède un sens plus large dans la littérature (propriété des données, disponibilité hors ligne, collaboration et synchronisation éventuelles) : un simple stockage local n'implique pas ces capacités. Voir [Ink & Switch — Local-first software](https://www.inkandswitch.com/essay/local-first/). Les exemples et schémas des fiches restent indépendants d'une application réelle.
 
 **Un pattern n'est pas une stack exclusive :** le mode de rendu (SSR/SSG/CSR), le contrat API (REST/GraphQL), la frontière BFF et l'hébergement (serverless ou non) sont des dimensions souvent combinables.
 
@@ -28,7 +29,7 @@ Catalogue pédagogique de **19 architectures frontend**, pour architectes soluti
 - Comparer 2–3 patterns ; copier l'ADR Markdown et les fiches avec étapes et architecture.
 - Assistant d'orientation indicatif : canal web/mobile, choix d'un stockage local sans backend ou d'APIs distantes, agrégation d'APIs, identité et hébergement.
 
-Une **page dédiée à l'arbre de décision intégral** (`decision-tree.html`) affiche **toutes les questions, leurs branches et les résultats** dans un **graphe panoramique** avec nœuds alignés par niveau, liaisons visibles, zoom, déplacement et mini-carte, y compris les alternatives non choisies. Les décisions retenues sont surlignées, conservées dans le panneau latéral et dans l'URL (`#path=...`) : changer une réponse ne masque pas le reste de l'arbre. Les fiches s'ouvrent sur une page indépendante et un retour depuis la fiche conserve le chemin (`treePath`). L'arbre propose aussi la branche « application autonome sans backend », puis l'arbitrage localStorage / IndexedDB ; il peut ouvrir directement une comparaison.
+Une **page dédiée à l'arbre de décision intégral** (`decision-tree.html`) affiche **toutes les questions, leurs branches et les résultats** dans un **graphe panoramique** avec nœuds alignés par niveau, liaisons visibles, zoom, déplacement et mini-carte, y compris les alternatives non choisies. Les décisions retenues sont surlignées, conservées dans le panneau latéral et dans l'URL (`#path=...`) : changer une réponse ne masque pas le reste de l'arbre. Les fiches s'ouvrent sur une page indépendante et un retour depuis la fiche conserve le chemin (`treePath`). L'arbre propose aussi la branche « application autonome sans backend », puis l'arbitrage des besoins de persistance locale ; il peut ouvrir directement une comparaison des deux variantes.
 Pour les graphes complexes, la vue de lecture s'ouvre à **100 %** pour conserver une typographie nette, avec des translations alignées sur les pixels physiques ; la vue d'ensemble permet de dézoomer volontairement. La carte utilise presque toute la largeur disponible (jusqu'à 2048 px), et le panneau **Mon parcours** peut être masqué pour libérer l'espace horizontal, sans perdre les décisions retenues.
 
 La **comparaison** est accessible dans une barre fixe dès la première sélection. À deux ou trois architectures, le bouton « Comparer les architectures » ouvre une fenêtre avec un tableau et un export ADR ; il n'est plus nécessaire de descendre en bas du catalogue.
