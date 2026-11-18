@@ -367,7 +367,7 @@ test('orientation : local-first accessible depuis catalogue et assistant',()=>{
  assert.match(html,/pwa-indexeddb/);
  assert.match(html,/spa-localstorage/);
  assert.match(html,/Sans backend ≠ sans persistance/);
- assert.match(read('sw.js'),/front-patterns-v9/);
+ assert.match(read('sw.js'),/front-patterns-v10/);
 });
 
 test('arbre : choix sans backend et comparaison des stockages',()=>{
