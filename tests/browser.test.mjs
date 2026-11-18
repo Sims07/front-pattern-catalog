@@ -343,11 +343,12 @@ test('patterns sans backend : filtre, assistant, fiches détaillées, comparaiso
  await page.waitForURL('**/pattern.html?id=spa-localstorage');
  assert.equal(await page.locator('.architecture-svg').count(),1);
  assert.equal(await page.locator('dialog').count(),0);
- assert.ok(await page.getByText('Enterprise Capacity Mapper').count()>=1);
+ assert.ok(await page.getByText(/Éditeur personnel de documents ou de paramètres/).count()>=1);
  assert.ok(await page.locator('.arch-node').count()>=6);
  await page.getByRole('link',{name:'Toutes les architectures'}).click();
  await page.locator('#dataSource').selectOption('local-rich');
- assert.match(await page.locator('#suggestTitle').innerText(),/IndexedDB/);
+ assert.match(await page.locator('#suggestTitle').innerText(),/offline-first/);
+ assert.match(await page.locator('#suggestReason').innerText(),/IndexedDB/);
  assert.equal(await page.locator('#aggregation').isDisabled(),true);
  await page.locator('#suggestOpen').click();
  await page.waitForURL('**/pattern.html?id=pwa-indexeddb');
