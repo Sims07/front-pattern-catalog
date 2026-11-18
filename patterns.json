@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "updated": "2026-11-18",
   "description": "Référentiel d'architectures frontend : application autonome côté client, offline-first, BFF, serverless, CMS et mobile. Les technologies de stockage sont des variantes d'implémentation.",
   "sources": [
@@ -3993,18 +3993,18 @@
       "operations": "Surveiller les erreurs de persistance, la taille des données, les migrations et la restauration ; proposer export/import JSON et expliquer qu'effacer les données du site supprime les données enregistrées.",
       "diagram": [
         [
+          "Hébergement statique",
+          "HTML / JS / CSS",
+          "cdn"
+        ],
+        [
           "Application SPA",
-          "UI + modèle métier",
+          "Interface + métier",
           "client"
         ],
         [
-          "Repository",
-          "port de persistance",
-          "service"
-        ],
-        [
           "localStorage",
-          "JSON local",
+          "Données locales",
           "data"
         ]
       ],
@@ -4020,9 +4020,8 @@
       "audienceDetail": "Web et PWA : persistance attachée à une origine et à un profil de navigateur, sans synchronisation native.",
       "mobileNote": "Accessible depuis une PWA sur téléphone, mais stockage et quota restent propres au navigateur/profil et peuvent être effacés ; ce n'est pas une application native synchronisée.",
       "preview": [
-        "Application web",
-        "Règles métier",
-        "Port de stockage",
+        "Site statique",
+        "SPA dans le navigateur",
         "localStorage",
         "Export JSON"
       ],
@@ -4045,143 +4044,78 @@
       "architecture": {
         "stages": [
           {
-            "label": "Expérience utilisateur",
-            "nodes": [
-              {
-                "id": "ui",
-                "name": "SPA / PWA",
-                "detail": "interface navigateur",
-                "kind": "client"
-              },
-              {
-                "id": "editor",
-                "name": "Espace de travail",
-                "detail": "formulaires et vues",
-                "kind": "client"
-              }
-            ]
-          },
-          {
-            "label": "Logique applicative",
-            "nodes": [
-              {
-                "id": "domain",
-                "name": "Règles métier",
-                "detail": "validation et calculs",
-                "kind": "service"
-              },
-              {
-                "id": "repo",
-                "name": "Port de persistance",
-                "detail": "lecture / écriture",
-                "kind": "service"
-              }
-            ]
-          },
-          {
-            "label": "Stockage dans le navigateur",
-            "nodes": [
-              {
-                "id": "active",
-                "name": "localStorage données",
-                "detail": "objets JSON versionnés",
-                "kind": "data"
-              },
-              {
-                "id": "maps",
-                "name": "localStorage réglages",
-                "detail": "préférences locales",
-                "kind": "data"
-              }
-            ]
-          },
-          {
-            "label": "Diffusion et sauvegarde",
+            "label": "Distribution de l’application",
             "nodes": [
               {
                 "id": "static",
                 "name": "Hébergement statique",
-                "detail": "HTML, CSS et JS",
+                "detail": "HTML, CSS et JavaScript",
                 "kind": "cdn"
-              },
+              }
+            ]
+          },
+          {
+            "label": "Exécution dans le navigateur",
+            "nodes": [
               {
-                "id": "file",
-                "name": "Fichier exporté",
-                "detail": "JSON de sauvegarde",
+                "id": "app",
+                "name": "Application web (SPA)",
+                "detail": "Interface + logique métier",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Données et sauvegarde locales",
+            "nodes": [
+              {
+                "id": "storage",
+                "name": "localStorage",
+                "detail": "Données et préférences",
                 "kind": "data"
               },
               {
-                "id": "sw",
-                "name": "Cache PWA facultatif",
-                "detail": "ressources, pas données",
-                "kind": "build"
+                "id": "file",
+                "name": "Fichier JSON (optionnel)",
+                "detail": "Export / import",
+                "kind": "data"
               }
             ]
           }
         ],
         "links": [
           {
-            "from": "ui",
-            "to": "editor",
-            "label": "actions UI",
-            "type": "api"
-          },
-          {
-            "from": "editor",
-            "to": "domain",
-            "label": "cas d'usage",
-            "type": "api"
-          },
-          {
-            "from": "domain",
-            "to": "repo",
-            "label": "port de persistance",
-            "type": "api"
-          },
-          {
-            "from": "repo",
-            "to": "active",
-            "label": "JSON local",
-            "type": "api"
-          },
-          {
-            "from": "repo",
-            "to": "maps",
-            "label": "préférences",
-            "type": "api"
-          },
-          {
-            "from": "ui",
-            "to": "static",
-            "label": "chargement des ressources",
+            "from": "static",
+            "to": "app",
+            "label": "ressources statiques",
             "type": "asset"
           },
           {
-            "from": "editor",
+            "from": "app",
+            "to": "storage",
+            "label": "lecture / écriture locale",
+            "type": "api"
+          },
+          {
+            "from": "app",
             "to": "file",
-            "label": "export / import",
+            "label": "sauvegarde / restauration",
             "type": "api"
-          },
-          {
-            "from": "ui",
-            "to": "sw",
-            "label": "cache optionnel",
-            "type": "asset"
           }
         ],
         "transverse": [
-          "Stockage local au navigateur : ni API métier ni base distante",
-          "Pas de synchronisation automatique ou de sauvegarde hors appareil",
-          "Prévoir gestion des quotas, validation, migrations et export des données"
+          "L'interface et les règles métier peuvent appartenir à la même SPA : aucune autre application n'est requise",
+          "Un adaptateur de stockage peut être isolé dans le code sans devenir un composant déployé",
+          "Service worker optionnel pour les ressources hors ligne, distinct de localStorage ; données propres au navigateur"
         ]
       },
       "cardPreview": {
         "steps": [
-          "SPA web",
-          "localStorage",
-          "Export JSON"
+          "Site statique",
+          "SPA navigateur",
+          "localStorage"
         ],
-        "value": "Application interactive autonome avec sauvegarde dans le navigateur."
+        "value": "Une application côté client, sans backend, avec données enregistrées localement."
       }
     },
     {
@@ -4213,18 +4147,18 @@
       "operations": "Contrôler migrations IndexedDB, cohérence des transactions, quota, données corrompues, restauration et ouverture hors ligne. Tester le cycle de vie des ressources de la PWA séparément du cycle de vie des données.",
       "diagram": [
         [
-          "Interface PWA",
-          "écran / cas d'usage",
+          "Hébergement statique",
+          "HTML / JS / CSS",
+          "cdn"
+        ],
+        [
+          "Application PWA",
+          "UI + métier",
           "client"
         ],
         [
-          "Repository",
-          "adaptateur asynchrone",
-          "service"
-        ],
-        [
           "IndexedDB",
-          "transactions + index",
+          "Données structurées",
           "data"
         ]
       ],
@@ -4241,11 +4175,11 @@
       "audienceDetail": "PWA Web fonctionnant localement après chargement des ressources nécessaires, avec stockage par origine et profil de navigateur.",
       "mobileNote": "Une PWA installée sur mobile peut conserver des données hors ligne, mais doit être testée contre les quotas et politiques propres au navigateur ; le stockage n'est pas partagé entre appareils.",
       "preview": [
-        "PWA web",
-        "Cas d'usage",
-        "Port asynchrone",
+        "Site statique",
+        "Application PWA",
         "IndexedDB",
-        "Sauvegarde"
+        "Cache des ressources",
+        "Export facultatif"
       ],
       "steps": [
         "Le site statique charge la PWA ; un service worker peut conserver les ressources de l'application pour les visites hors ligne.",
@@ -4266,81 +4200,46 @@
       "architecture": {
         "stages": [
           {
-            "label": "Expérience hors ligne",
+            "label": "Distribution de l’application",
+            "nodes": [
+              {
+                "id": "static",
+                "name": "Hébergement statique",
+                "detail": "HTML, CSS et JavaScript",
+                "kind": "cdn"
+              }
+            ]
+          },
+          {
+            "label": "Exécution dans le navigateur",
             "nodes": [
               {
                 "id": "app",
-                "name": "PWA navigateur",
-                "detail": "UI / formulaires",
-                "kind": "client"
-              },
-              {
-                "id": "views",
-                "name": "Vues et recherches",
-                "detail": "listes, filtres",
+                "name": "Application PWA",
+                "detail": "Interface + logique métier",
                 "kind": "client"
               }
             ]
           },
           {
-            "label": "Cas d'usage",
+            "label": "Données et ressources locales",
             "nodes": [
               {
-                "id": "domain",
-                "name": "Modèle métier",
-                "detail": "validation pure",
-                "kind": "service"
-              },
-              {
-                "id": "port",
-                "name": "Port de persistance",
-                "detail": "API asynchrone",
-                "kind": "service"
-              }
-            ]
-          },
-          {
-            "label": "Données du navigateur",
-            "nodes": [
-              {
-                "id": "records",
-                "name": "IndexedDB stores",
-                "detail": "entités et versions",
+                "id": "storage",
+                "name": "IndexedDB",
+                "detail": "Objets, index et transactions",
                 "kind": "data"
-              },
-              {
-                "id": "indexes",
-                "name": "Index + transactions",
-                "detail": "recherches locales",
-                "kind": "data"
-              },
-              {
-                "id": "attachments",
-                "name": "IndexedDB Blob",
-                "detail": "photos / fichiers",
-                "kind": "data"
-              }
-            ]
-          },
-          {
-            "label": "Diffusion et secours",
-            "nodes": [
-              {
-                "id": "cdn",
-                "name": "Hébergement statique",
-                "detail": "GitHub Pages / CDN",
-                "kind": "cdn"
               },
               {
                 "id": "sw",
                 "name": "Service worker + cache",
-                "detail": "ressources PWA",
+                "detail": "Ressources pour usage hors ligne",
                 "kind": "build"
               },
               {
-                "id": "export",
-                "name": "Export de sauvegarde",
-                "detail": "JSON / fichiers",
+                "id": "file",
+                "name": "Export (optionnel)",
+                "detail": "Sauvegarde / restauration",
                 "kind": "data"
               }
             ]
@@ -4348,73 +4247,44 @@
         ],
         "links": [
           {
-            "from": "app",
-            "to": "views",
-            "label": "interactions",
-            "type": "api"
-          },
-          {
-            "from": "views",
-            "to": "domain",
-            "label": "cas d'usage",
-            "type": "api"
-          },
-          {
-            "from": "domain",
-            "to": "port",
-            "label": "contrat",
-            "type": "api"
-          },
-          {
-            "from": "port",
-            "to": "records",
-            "label": "transactions",
-            "type": "api"
-          },
-          {
-            "from": "port",
-            "to": "indexes",
-            "label": "index / requêtes",
-            "type": "api"
-          },
-          {
-            "from": "port",
-            "to": "attachments",
-            "label": "Blob",
-            "type": "api"
-          },
-          {
-            "from": "app",
-            "to": "cdn",
-            "label": "chargement initial",
+            "from": "static",
+            "to": "app",
+            "label": "ressources initiales",
             "type": "asset"
+          },
+          {
+            "from": "app",
+            "to": "storage",
+            "label": "transactions locales",
+            "type": "api"
           },
           {
             "from": "app",
             "to": "sw",
-            "label": "ressources offline",
+            "label": "mise en cache hors ligne",
             "type": "asset"
           },
           {
-            "from": "views",
-            "to": "export",
-            "label": "sauvegarde / reprise",
+            "from": "app",
+            "to": "file",
+            "label": "export / import",
             "type": "api"
           }
         ],
         "transverse": [
-          "Le service worker conserve l'application, pas automatiquement les données IndexedDB",
-          "Prévoir quota, persistance éventuellement accordée par le navigateur et export de secours",
-          "Pas de synchronisation automatique ni de serveur métier"
+          "La PWA contient l'interface et la logique métier : aucune application séparée pour les vues",
+          "IndexedDB conserve les données métier ; Cache Storage et le service worker conservent les ressources",
+          "Un adaptateur de persistance peut être une abstraction interne, non un service ou backend supplémentaire",
+          "Les données restent propres à l'origine et au profil de navigateur, sans synchronisation automatique"
         ]
       },
       "cardPreview": {
         "steps": [
-          "PWA web",
+          "PWA navigateur",
           "IndexedDB",
-          "Export local"
+          "Cache hors ligne"
         ],
-        "value": "Données riches et opérations disponibles hors ligne sans backend métier."
+        "value": "Une seule application côté navigateur et des données structurées locales."
       }
     }
   ],
