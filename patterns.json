@@ -4015,7 +4015,9 @@
       "audienceDetail": "Web et PWA : les données restent dans le navigateur et sur l'origine utilisée.",
       "mobileNote": "Accessible depuis une PWA sur téléphone, mais stockage et quota restent propres au navigateur/profil et peuvent être effacés ; ce n'est pas une application native synchronisée.",
       "preview": [
-        "Écran SPA",
+        "Application SPA",
+        "Modèle métier",
+        "Port de stockage",
         "localStorage",
         "Export JSON"
       ],
@@ -4233,9 +4235,11 @@
       "audienceDetail": "Web et PWA installable : chaque origine/profil possède son propre stockage IndexedDB.",
       "mobileNote": "Adapté aux usages hors ligne dans un navigateur mobile/PWA, sous réserve des contraintes de quota et des politiques d'éviction propres au navigateur ; pas de synchronisation automatique.",
       "preview": [
-        "PWA métier",
+        "PWA web",
+        "Cas d'usage",
+        "Port asynchrone",
         "IndexedDB",
-        "Export local"
+        "Sauvegarde"
       ],
       "steps": [
         "Le site statique charge la PWA ; un service worker peut conserver les ressources de l'application pour les visites hors ligne.",
