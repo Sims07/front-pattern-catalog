@@ -1,7 +1,7 @@
 {
-  "version": 4,
-  "updated": "2026-11-16",
-  "description": "Catalogue pédagogique de patterns frontend et de gestion de contenus : web, mobile, BFF, serverless, CMS traditionnel et CMS headless.",
+  "version": 5,
+  "updated": "2026-11-18",
+  "description": "Catalogue pédagogique de patterns frontend, du local-first sans backend au BFF, serverless, CMS et mobile.",
   "sources": [
     {
       "id": "oauth",
@@ -62,6 +62,26 @@
       "id": "wordpress-rest",
       "title": "WordPress — REST API developer handbook",
       "url": "https://developer.wordpress.org/plugins/rest-api/"
+    },
+    {
+      "id": "mdn-webstorage",
+      "title": "MDN — Web Storage API (localStorage synchrone)",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API"
+    },
+    {
+      "id": "mdn-indexeddb",
+      "title": "MDN — IndexedDB API (données structurées et transactions)",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API"
+    },
+    {
+      "id": "mdn-storage-quotas",
+      "title": "MDN — Quotas de stockage et éviction des données",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria"
+    },
+    {
+      "id": "mdn-sw",
+      "title": "MDN — Service Worker API (cache des ressources de la PWA)",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API"
     }
   ],
   "patterns": [
@@ -3938,6 +3958,454 @@
         ],
         "value": "Le même contenu alimente plusieurs interfaces."
       }
+    },
+    {
+      "id": "spa-localstorage",
+      "title": "SPA autonome + localStorage",
+      "subtitle": "Sans backend · local-first",
+      "tags": [
+        "local-first",
+        "direct"
+      ],
+      "rendering": "CSR",
+      "hosting": "Hébergement statique / GitHub Pages",
+      "complexity": "Faible à modérée",
+      "auth": "Locale, sans session serveur",
+      "summary": "Une application autonome conserve ses modèles et préférences avec localStorage, sans backend ni base distante.",
+      "problem": "Les données métier appartiennent à un utilisateur ou à un navigateur, sans besoin immédiat de compte, de collaboration en temps réel ou de synchronisation.",
+      "when": "Éditeurs personnels, outils de cartographie, simulateurs ou configurateurs à données JSON modérées, avec import/export.",
+      "benefits": [
+        "Déploiement statique économique et indépendant d'une API métier",
+        "Accès immédiat aux données enregistrées sur le même navigateur",
+        "Domaine et persistance isolables par un port, remplaçables sans réécrire l'interface"
+      ],
+      "tradeoffs": [
+        "Stockage localStorage synchrone : les grosses sérialisations bloquent le thread principal",
+        "Capacité limitée par le navigateur et l'origine ; les quotas et l'effacement peuvent entraîner une perte",
+        "Pas de partage entre appareils ou utilisateurs sans export/import explicite"
+      ],
+      "security": "Les données sont accessibles au JavaScript de la même origine : limiter les scripts tiers, éviter les secrets et protéger contre les XSS. Pas d'authentification ou de sauvegarde serveur implicite.",
+      "operations": "Tester quota, exceptions de stockage, migrations de schéma, récupération et sauvegardes ; proposer export/import JSON et informer que supprimer les données du site supprime les cartographies.",
+      "diagram": [
+        [
+          "Application SPA",
+          "UI + modèle métier",
+          "client"
+        ],
+        [
+          "Repository",
+          "port de persistance",
+          "service"
+        ],
+        [
+          "localStorage",
+          "JSON local",
+          "data"
+        ]
+      ],
+      "refs": [
+        "mdn-webstorage",
+        "mdn-storage-quotas",
+        "mdn-csr"
+      ],
+      "simple": "Une SPA statique fonctionne seule : le navigateur stocke ses cartographies et préférences via localStorage, avec export/import JSON comme sauvegarde portable.",
+      "audience": [
+        "web"
+      ],
+      "audienceDetail": "Web et PWA : les données restent dans le navigateur et sur l'origine utilisée.",
+      "mobileNote": "Accessible depuis une PWA sur téléphone, mais stockage et quota restent propres au navigateur/profil et peuvent être effacés ; ce n'est pas une application native synchronisée.",
+      "preview": [
+        "Écran SPA",
+        "localStorage",
+        "Export JSON"
+      ],
+      "steps": [
+        "Le site statique (par exemple GitHub Pages) charge HTML, CSS et JavaScript dans le navigateur.",
+        "L'interface appelle les cas d'usage et le modèle métier, indépendants du stockage.",
+        "Un adaptateur de repository sérialise le modèle validé en JSON dans localStorage.",
+        "L'application recharge le modèle et applique les migrations de schéma au démarrage.",
+        "L'utilisateur exporte un fichier JSON pour sauvegarder, transférer ou restaurer sa cartographie.",
+        "Un service worker optionnel met en cache les ressources de la PWA ; il n'est pas le stockage métier."
+      ],
+      "implementation": [
+        "Définir un port de persistance (load/save/import/export) ; séparer domaine, UI et adaptateur localStorage.",
+        "Limiter les écritures et la taille des modèles JSON ; gérer QuotaExceededError, sérialisation et validation des données relues.",
+        "Versionner le schéma et tester migrations, sauvegardes multiples, données corrompues et récupération.",
+        "Proposer export/import JSON et avertir qu'un changement de navigateur, profil ou origine ne transfère pas automatiquement les données.",
+        "Ajouter manifest et service worker seulement si un fonctionnement hors ligne des ressources est attendu."
+      ],
+      "example": "Enterprise Capacity Mapper : PWA React hébergée sur GitHub Pages, cartographies N0/N1 et préférences conservées via un adaptateur localStorage, avec sauvegardes et export/import JSON.",
+      "architecture": {
+        "stages": [
+          {
+            "label": "Expérience dans le navigateur",
+            "nodes": [
+              {
+                "id": "ui",
+                "name": "SPA / PWA",
+                "detail": "React, Vue ou autre",
+                "kind": "client"
+              },
+              {
+                "id": "editor",
+                "name": "Éditeur de cartographies",
+                "detail": "N0 / N1 / applications",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Logique et frontières",
+            "nodes": [
+              {
+                "id": "domain",
+                "name": "Modèle métier",
+                "detail": "règles + validation",
+                "kind": "service"
+              },
+              {
+                "id": "repo",
+                "name": "Port ModelRepository",
+                "detail": "load / save",
+                "kind": "service"
+              }
+            ]
+          },
+          {
+            "label": "Persistance dans l'origine",
+            "nodes": [
+              {
+                "id": "active",
+                "name": "localStorage modèle",
+                "detail": "JSON versionné",
+                "kind": "data"
+              },
+              {
+                "id": "maps",
+                "name": "localStorage bibliothèque",
+                "detail": "cartes + préférences",
+                "kind": "data"
+              }
+            ]
+          },
+          {
+            "label": "Distribution et continuité",
+            "nodes": [
+              {
+                "id": "static",
+                "name": "GitHub Pages / CDN",
+                "detail": "ressources statiques",
+                "kind": "cdn"
+              },
+              {
+                "id": "file",
+                "name": "Fichier JSON exporté",
+                "detail": "sauvegarde manuelle",
+                "kind": "data"
+              },
+              {
+                "id": "sw",
+                "name": "Cache PWA facultatif",
+                "detail": "assets, pas données",
+                "kind": "build"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "ui",
+            "to": "editor",
+            "label": "actions UI",
+            "type": "api"
+          },
+          {
+            "from": "editor",
+            "to": "domain",
+            "label": "cas d'usage",
+            "type": "api"
+          },
+          {
+            "from": "domain",
+            "to": "repo",
+            "label": "contrat",
+            "type": "api"
+          },
+          {
+            "from": "repo",
+            "to": "active",
+            "label": "lecture / écriture JSON",
+            "type": "api"
+          },
+          {
+            "from": "repo",
+            "to": "maps",
+            "label": "lecture / écriture JSON",
+            "type": "api"
+          },
+          {
+            "from": "ui",
+            "to": "static",
+            "label": "ressources au chargement",
+            "type": "asset"
+          },
+          {
+            "from": "editor",
+            "to": "file",
+            "label": "export / import local",
+            "type": "api"
+          },
+          {
+            "from": "ui",
+            "to": "sw",
+            "label": "cache applicatif optionnel",
+            "type": "asset"
+          }
+        ],
+        "transverse": [
+          "Aucun backend métier ni base de données distante dans ce flux",
+          "Données confinées à l'origine et au profil de navigateur",
+          "Prévoir quotas, suppression des données locales, import/export et migration de schéma"
+        ]
+      },
+      "cardPreview": {
+        "steps": [
+          "SPA web",
+          "localStorage",
+          "Export JSON"
+        ],
+        "value": "Cartographies et préférences locales sans backend ni synchronisation."
+      }
+    },
+    {
+      "id": "pwa-indexeddb",
+      "title": "PWA Local-First + IndexedDB",
+      "subtitle": "Sans backend · données structurées",
+      "tags": [
+        "local-first",
+        "direct"
+      ],
+      "rendering": "CSR",
+      "hosting": "Hébergement statique / GitHub Pages",
+      "complexity": "Modérée",
+      "auth": "Locale, sans session serveur",
+      "summary": "Une PWA conserve des données structurées et volumineuses dans IndexedDB, avec transactions asynchrones et accès hors ligne.",
+      "problem": "L'application doit exploiter de nombreuses entités, fichiers ou objets métiers en restant réactive et autonome, même sans connexion.",
+      "when": "Éditeur métier riche, carnet terrain, collecte offline ou application avec recherches/indexes, nombreuses entrées ou blobs.",
+      "benefits": [
+        "Lecture et écriture asynchrones évitant de bloquer l'interface sur de gros volumes",
+        "Transactions et index permettant une persistance structurée et évolutive",
+        "Données utilisables sans réseau après installation et mise en cache de l'application"
+      ],
+      "tradeoffs": [
+        "Schéma IndexedDB, transactions et changements de version plus complexes à maintenir",
+        "Quotas, éviction et suppression des données locales possibles selon le navigateur et l'usage",
+        "Pas de synchronisation multi-appareil ou de collaboration sans service supplémentaire"
+      ],
+      "security": "Limiter les données sensibles et les scripts tiers, protéger contre les XSS, chiffrer au niveau applicatif seulement si les exigences l'imposent avec une gestion de clés adaptée. IndexedDB n'est pas une frontière d'autorisation entre scripts de même origine.",
+      "operations": "Tester les migrations IndexedDB, transactions interrompues, quotas, stratégie de sauvegarde/restauration, mises à jour du service worker et lecture hors ligne ; demander le stockage persistant si le navigateur le permet.",
+      "diagram": [
+        [
+          "Interface PWA",
+          "écran / cas d'usage",
+          "client"
+        ],
+        [
+          "Repository",
+          "adaptateur asynchrone",
+          "service"
+        ],
+        [
+          "IndexedDB",
+          "transactions + index",
+          "data"
+        ]
+      ],
+      "refs": [
+        "mdn-indexeddb",
+        "mdn-storage-quotas",
+        "mdn-sw"
+      ],
+      "simple": "Une PWA statique peut fonctionner sans backend : elle conserve localement ses objets et fichiers dans IndexedDB, tandis que le service worker met en cache les ressources nécessaires au mode hors ligne.",
+      "audience": [
+        "web"
+      ],
+      "audienceDetail": "Web et PWA installable : chaque origine/profil possède son propre stockage IndexedDB.",
+      "mobileNote": "Adapté aux usages hors ligne dans un navigateur mobile/PWA, sous réserve des contraintes de quota et des politiques d'éviction propres au navigateur ; pas de synchronisation automatique.",
+      "preview": [
+        "PWA métier",
+        "IndexedDB",
+        "Export local"
+      ],
+      "steps": [
+        "Le site statique charge la PWA ; un service worker peut conserver les ressources de l'application pour les visites hors ligne.",
+        "L'interface déclenche un cas d'usage sans communiquer avec une API métier distante.",
+        "Le repository ouvre IndexedDB et effectue des transactions asynchrones sur des object stores versionnés.",
+        "Les indexes permettent de retrouver des entités et les Blob peuvent conserver des pièces jointes.",
+        "Les modifications et les recherches sont rendues à l'interface ; la logique métier reste indépendante de l'API IndexedDB.",
+        "La PWA propose une sauvegarde/export portable et, si pertinent, demande la persistance via navigator.storage.persist()."
+      ],
+      "implementation": [
+        "Placer IndexedDB derrière un port de persistance avec un adaptateur asynchrone ; ne pas coupler le domaine aux callbacks ou transactions navigateur.",
+        "Définir versions, object stores, indexes et migrations dans onupgradeneeded ; gérer les transactions avortées.",
+        "Distinguer Cache Storage/service worker (HTML, CSS, JS) et IndexedDB (données métier) ; leur cycle de vie est distinct.",
+        "Surveiller quotas/éviction et prévoir stratégie d'export, de restauration et de sauvegarde régulière des données irremplaçables.",
+        "Tester les navigateurs cibles, en particulier Safari et le mode PWA installé, le stockage persistant restant soumis à décision du navigateur."
+      ],
+      "example": "Application de relevés sur le terrain : les fiches, annotations et photos restent dans IndexedDB hors connexion ; un export permet de transférer les données sans serveur.",
+      "architecture": {
+        "stages": [
+          {
+            "label": "Expérience hors ligne",
+            "nodes": [
+              {
+                "id": "app",
+                "name": "PWA navigateur",
+                "detail": "UI / formulaires",
+                "kind": "client"
+              },
+              {
+                "id": "views",
+                "name": "Vues et recherches",
+                "detail": "listes, filtres",
+                "kind": "client"
+              }
+            ]
+          },
+          {
+            "label": "Cas d'usage",
+            "nodes": [
+              {
+                "id": "domain",
+                "name": "Modèle métier",
+                "detail": "validation pure",
+                "kind": "service"
+              },
+              {
+                "id": "port",
+                "name": "Port de persistance",
+                "detail": "API asynchrone",
+                "kind": "service"
+              }
+            ]
+          },
+          {
+            "label": "Données du navigateur",
+            "nodes": [
+              {
+                "id": "records",
+                "name": "IndexedDB stores",
+                "detail": "entités et versions",
+                "kind": "data"
+              },
+              {
+                "id": "indexes",
+                "name": "Index + transactions",
+                "detail": "recherches locales",
+                "kind": "data"
+              },
+              {
+                "id": "attachments",
+                "name": "IndexedDB Blob",
+                "detail": "photos / fichiers",
+                "kind": "data"
+              }
+            ]
+          },
+          {
+            "label": "Diffusion et secours",
+            "nodes": [
+              {
+                "id": "cdn",
+                "name": "Hébergement statique",
+                "detail": "GitHub Pages / CDN",
+                "kind": "cdn"
+              },
+              {
+                "id": "sw",
+                "name": "Service worker + cache",
+                "detail": "ressources PWA",
+                "kind": "build"
+              },
+              {
+                "id": "export",
+                "name": "Export de sauvegarde",
+                "detail": "JSON / fichiers",
+                "kind": "data"
+              }
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "app",
+            "to": "views",
+            "label": "interactions",
+            "type": "api"
+          },
+          {
+            "from": "views",
+            "to": "domain",
+            "label": "cas d'usage",
+            "type": "api"
+          },
+          {
+            "from": "domain",
+            "to": "port",
+            "label": "contrat",
+            "type": "api"
+          },
+          {
+            "from": "port",
+            "to": "records",
+            "label": "transactions",
+            "type": "api"
+          },
+          {
+            "from": "port",
+            "to": "indexes",
+            "label": "index / requêtes",
+            "type": "api"
+          },
+          {
+            "from": "port",
+            "to": "attachments",
+            "label": "Blob",
+            "type": "api"
+          },
+          {
+            "from": "app",
+            "to": "cdn",
+            "label": "chargement initial",
+            "type": "asset"
+          },
+          {
+            "from": "app",
+            "to": "sw",
+            "label": "ressources offline",
+            "type": "asset"
+          },
+          {
+            "from": "views",
+            "to": "export",
+            "label": "sauvegarde / reprise",
+            "type": "api"
+          }
+        ],
+        "transverse": [
+          "Le service worker conserve l'application, pas automatiquement les données IndexedDB",
+          "Prévoir quota, persistance éventuellement accordée par le navigateur et export de secours",
+          "Pas de synchronisation automatique ni de serveur métier"
+        ]
+      },
+      "cardPreview": {
+        "steps": [
+          "PWA web",
+          "IndexedDB",
+          "Export local"
+        ],
+        "value": "Données structurées consultables et modifiables hors connexion."
+      }
     }
   ],
   "glossary": [
@@ -4024,6 +4492,36 @@
       "full": "File de messages / file d'échec",
       "simple": "Une file reçoit les tâches asynchrones ; la DLQ garde celles qui échouent après les tentatives de reprise.",
       "example": "Génération d'un rapport PDF en arrière-plan."
+    },
+    {
+      "term": "localStorage",
+      "full": "Stockage clé-valeur du navigateur",
+      "simple": "Enregistre de petites données sous forme de chaînes pour une origine. Accès synchrone, utile pour préférences et modèles JSON modestes.",
+      "example": "Cartographies sauvegardées dans Enterprise Capacity Mapper."
+    },
+    {
+      "term": "IndexedDB",
+      "full": "Base de données transactionnelle du navigateur",
+      "simple": "Stocke des objets structurés, des fichiers et des index via des opérations asynchrones ; adaptée aux volumes plus importants.",
+      "example": "Fiches et photos d'une PWA de relevé de terrain."
+    },
+    {
+      "term": "Local-First",
+      "full": "Données d'abord dans le navigateur",
+      "simple": "L'application conserve et exploite des données métier localement, sans dépendre d'un serveur pour les opérations courantes. La synchronisation n'est pas automatique.",
+      "example": "Éditeur PWA autonome avec sauvegarde locale et export JSON."
+    },
+    {
+      "term": "Service worker",
+      "full": "Script de fond pour les ressources PWA",
+      "simple": "Intercepte des requêtes et gère le cache des ressources HTML, CSS et JavaScript pour faciliter l'usage hors connexion ; distinct du stockage des données métier.",
+      "example": "Réouverture d'une PWA sur GitHub Pages sans réseau."
+    },
+    {
+      "term": "Quota / éviction",
+      "full": "Limites et suppression possible du stockage local",
+      "simple": "Le navigateur peut refuser de nouvelles écritures ou évincer des données non persistantes ; les sauvegardes exportées restent nécessaires pour les données importantes.",
+      "example": "Export JSON avant de vider les données d'un site."
     }
   ]
 }
