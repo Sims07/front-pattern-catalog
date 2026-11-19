@@ -51,7 +51,7 @@ test('site autonome, accessible, manifest et cache hors ligne cohérents', () =>
   assert.match(html, /id="comparison"/);
   assert.match(html, /<dialog/);
   assert.match(html, /fetch\("\.\/patterns\.json"/);
-  assert.match(sw, /front-patterns-v11/);
+  assert.match(sw, /front-patterns-v12/);
   for (const path of ['index.html','patterns.json','diagrams.js','decision-tree.html','decision-tree.js','decision-tree.json','pattern.html','pattern-detail.js','pattern-detail.css','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png']) {
     assert.match(sw, new RegExp(path.replaceAll('.', '\\.')));
   }
@@ -367,7 +367,7 @@ test('orientation : local-first accessible depuis catalogue et assistant',()=>{
  assert.match(html,/pwa-indexeddb/);
  assert.match(html,/spa-localstorage/);
  assert.match(html,/Sans backend ≠ sans persistance/);
- assert.match(read('sw.js'),/front-patterns-v11/);
+ assert.match(read('sw.js'),/front-patterns-v12/);
 });
 
 test('arbre : choix sans backend et comparaison des stockages',()=>{
@@ -420,4 +420,21 @@ test('architecture locale : flux simples et composants authentiques',()=>{
    assert.ok(p.architecture.stages.some(s=>s.nodes.some(n=>n.detail.includes('Interface + logique métier'))));
    assert.ok(p.architecture.transverse.some(s=>/abstraction|adaptateur/.test(s)));
  }
+});
+
+test('fiches : métadonnées sémantiques, distinctes des boutons',()=>{
+ const js=read('pattern-detail.js'),css=read('pattern-detail.css');
+ assert.match(js,/class="pattern-specs" role="group"/);
+ assert.match(js,/aria-label="Caractéristiques de l’architecture"/);
+ assert.match(js,/<dl class="facts">/);
+ assert.match(js,/<dt>Rendu<\/dt><dd>/);
+ assert.match(js,/<dt>Hébergement<\/dt><dd>/);
+ assert.match(js,/<dt>Complexité<\/dt><dd>/);
+ assert.match(js,/<nav class="controls" aria-label="Actions sur la fiche">/);
+ assert.match(css,/\.pattern-specs\{display:flex/);
+ assert.match(css,/\.fact dt\{/);
+ assert.match(css,/\.fact dd\{/);
+ assert.doesNotMatch(css,/\.fact\{[^}]*background:/);
+ assert.doesNotMatch(css,/\.audience-item\{[^}]*border:/);
+ assert.doesNotThrow(()=>new Function(js));
 });
