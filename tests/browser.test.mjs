@@ -398,3 +398,51 @@ test('arbre de décision local-first : retour fiche et comparaison du stockage',
  assert.deepEqual(errors,[]);
  await page.close();
 });
+
+test('fiches : caractéristiques en ligne et actions clairement distinctes',async()=>{
+ for(const width of [390,860,1440]){
+  const page=await browser.newPage({viewport:{width,height:920}});
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(url+'pattern.html?id=spa-localstorage',{waitUntil:'networkidle'});
+  await page.locator('.pattern-specs').waitFor();
+  assert.equal(await page.locator('.pattern-specs .audience-item').count(),1);
+  assert.equal(await page.locator('.pattern-specs .fact').count(),3);
+  assert.deepEqual(await page.locator('.pattern-specs dt').allTextContents(),['Rendu','Hébergement','Complexité']);
+  assert.equal(await page.locator('.pattern-specs button,.pattern-specs a').count(),0);
+  assert.equal(await page.locator('.controls a').count(),2);
+  assert.equal(await page.locator('.controls button').count(),1);
+  const layout=await page.evaluate(()=>{
+   const strip=document.querySelector('.pattern-specs');
+   const audience=strip.querySelector('.audience');
+   const facts=strip.querySelector('.facts');
+   const actions=document.querySelector('.controls');
+   const specRect=strip.getBoundingClientRect();
+   const actionRect=actions.getBoundingClientRect();
+   const fact=strip.querySelector('.fact');
+   const css=getComputedStyle(fact);
+   return {
+    audienceTop:audience.getBoundingClientRect().top,
+    factsTop:facts.getBoundingClientRect().top,
+    specsBottom:specRect.bottom,
+    actionsTop:actionRect.top,
+    factsBackground:css.backgroundColor,
+    factBorderLeft:css.borderLeftStyle,
+    docOverflow:document.documentElement.scrollWidth-document.documentElement.clientWidth
+   };
+  });
+  assert.ok(layout.docOverflow<=1,'débordement horizontal à '+width+'px');
+  assert.ok(layout.actionsTop>layout.specsBottom-1,'les actions doivent avoir une zone distincte');
+  assert.equal(layout.factsBackground,'rgba(0, 0, 0, 0)','les données ne doivent pas imiter des boutons');
+  if(width>=860)assert.ok(Math.abs(layout.audienceTop-layout.factsTop)<=3,'les informations doivent tenir sur une ligne à '+width+'px');
+  await page.screenshot({path:'artifacts/pattern-header-'+width+'.png'});
+  assert.deepEqual(errors,[]);
+  await page.close();
+ }
+ const page=await browser.newPage({viewport:{width:1100,height:900}});
+ await page.goto(url+'pattern.html?id=multi-channel-bff',{waitUntil:'networkidle'});
+ await page.locator('.pattern-specs').waitFor();
+ assert.equal(await page.locator('.pattern-specs .audience-item').count(),2);
+ assert.equal(await page.locator('.pattern-specs dt').count(),3);
+ assert.ok(await page.locator('.controls #downloadMd').isEnabled());
+ await page.close();
+});

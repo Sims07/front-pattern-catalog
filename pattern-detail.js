@@ -48,7 +48,9 @@
     var prev=patterns[(idx+patterns.length-1)%patterns.length];
     var next=patterns[(idx+1)%patterns.length];
     var audience=p.audience.map(function(a){
-      return '<span class="audience-item'+(a==='mobile'?' mobile':'')+'">'+(a==='mobile'?'📱 Mobile natif':'🌐 Web / PWA')+'</span>';
+      return '<span class="audience-item'+(a==='mobile'?' mobile':'')+'">'+
+        '<span class="audience-symbol" aria-hidden="true">'+(a==='mobile'?'▣':'◎')+'</span>'+
+        esc(a==='mobile'?'Mobile natif':'Web / PWA')+'</span>';
     }).join('');
     var refs=p.refs.map(function(id){return sources.get(id)}).filter(Boolean).filter(function(r){return /^https:\/\//.test(r.url)});
     var links=refs.map(function(r){
@@ -62,13 +64,15 @@
       ].map(function(k){return '<div><strong>'+k[0]+'</strong><span>'+esc(p.serverless[k[1]])+'</span></div>';}).join('')+'</div>'):'';
     var header='<header class="header-intro"><span class="eyebrow">Fiche de référence · '+esc(p.subtitle)+'</span>'+
       '<h1>'+esc(p.title)+'</h1><p class="summary">'+esc(p.summary)+'</p>'+
-      '<div class="audience">'+audience+'</div><div class="facts">'+
-      '<span class="fact">Rendu : '+esc(p.rendering)+'</span>'+
-      '<span class="fact">Hébergement : '+esc(p.hosting)+'</span>'+
-      '<span class="fact">Complexité : '+esc(p.complexity)+'</span></div>'+
-      '<div class="controls"><a class="btn primary" href="./index.html#compare='+encodeURIComponent(p.id)+'">Ajouter à la comparaison ↗</a>'+
+      '<div class="pattern-specs" role="group" aria-label="Caractéristiques de l’architecture">'+
+      '<div class="audience" aria-label="Canaux concernés">'+audience+'</div>'+
+      '<dl class="facts">'+
+      '<div class="fact"><dt>Rendu</dt><dd>'+esc(p.rendering)+'</dd></div>'+
+      '<div class="fact"><dt>Hébergement</dt><dd>'+esc(p.hosting)+'</dd></div>'+
+      '<div class="fact"><dt>Complexité</dt><dd>'+esc(p.complexity)+'</dd></div></dl></div>'+
+      '<nav class="controls" aria-label="Actions sur la fiche"><a class="btn primary" href="./index.html#compare='+encodeURIComponent(p.id)+'">Ajouter à la comparaison ↗</a>'+
       '<a class="btn" href="'+esc(treeBack)+'">Retour à l’arbre de décision ↗</a>'+
-      '<button type="button" class="btn" id="downloadMd">Exporter la fiche Markdown</button></div>'+
+      '<button type="button" class="btn" id="downloadMd">Exporter la fiche Markdown</button></nav>'+
       '<div class="intro-panel"><strong>En clair</strong><p>'+esc(p.simple)+'</p></div></header>';
     var diagram='<section class="architecture-section" id="architecture">'+
       '<h2>Schéma d’architecture détaillé</h2>'+
