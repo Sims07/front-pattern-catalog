@@ -27,6 +27,7 @@ Catalogue pédagogique de **19 architectures frontend**, pour architectes soluti
 
 - Cartes : **teasers lisibles sans défilement**, 3 repères métier sur une seule ligne, une phrase de valeur, le nombre de composants détaillés et un lien vers la fiche complète. Chaque teaser est défini dans `patterns.json` (`cardPreview.steps` / `cardPreview.value`). Les schémas riches restent réservés aux fiches de détail ; canaux, filtres et recherche inchangés.
 - Fiche **sur une page dédiée** (`pattern.html?id=...`) : explication « En clair », grand schéma **de haut en bas** (nœuds, branches, liaisons), sommaire d'ancres, exemple, sécurité et points transverses. **Aucune fenêtre pop-up pour les fiches**.
+- En-tête des fiches : caractéristiques **non interactives** (canaux, rendu, hébergement, complexité) réunies sur une ligne de métadonnées textuelles lorsque l'écran le permet, séparées des **véritables boutons d’action**. Présentation compacte et adaptable au mobile.
 - Sections : parcours étape par étape, exemple d'utilisation, avantages, compromis, sécurité, mise en œuvre, exploitation ; encart approfondi pour les 5 patterns serverless.
 - Comparer 2–3 patterns ; copier l'ADR Markdown et les fiches avec étapes et architecture.
 - Assistant d'orientation indicatif : canal web/mobile, choix d'un stockage local sans backend ou d'APIs distantes, agrégation d'APIs, identité et hébergement.
