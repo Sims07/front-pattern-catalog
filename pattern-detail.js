@@ -64,7 +64,7 @@
       ].map(function(k){return '<div><strong>'+k[0]+'</strong><span>'+esc(p.serverless[k[1]])+'</span></div>';}).join('')+'</div>'):'';
     var header='<header class="header-intro"><span class="eyebrow">Fiche de référence · '+esc(p.subtitle)+'</span>'+
       '<h1>'+esc(p.title)+'</h1><p class="summary">'+esc(p.summary)+'</p>'+
-      '<div class="pattern-specs" aria-label="Caractéristiques de l’architecture">'+
+      '<div class="pattern-specs" role="group" aria-label="Caractéristiques de l’architecture">'+
       '<div class="audience" aria-label="Canaux concernés">'+audience+'</div>'+
       '<dl class="facts">'+
       '<div class="fact"><dt>Rendu</dt><dd>'+esc(p.rendering)+'</dd></div>'+
